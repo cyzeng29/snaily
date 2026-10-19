@@ -380,8 +380,9 @@ body:has(.focus:not([hidden])) .tabs{opacity:0;pointer-events:none}
 #v-open[data-state="loading"] .open-from{margin:auto 16px}
 .o-hint{margin:2px 20px 0;text-align:center;font-size:15px}
 #v-open:not([data-state="card"]) .o-hint{display:none}.o-hint[hidden]{display:none}
-#v-open:not([data-state="card"]) .acts{justify-content:center}
+#v-open .acts{justify-content:center}
 a.act{text-decoration:none}
+#oMake{padding:0 18px 0 20px;border-radius:99px;box-shadow:inset 0 0 0 1.5px var(--line)}
 @media (prefers-reduced-motion:reduce){.open-snail{animation:none}}
 
 /* ===== focused writing: the card fills the view, everything else steps aside, a small X in the corner closes it ===== */
