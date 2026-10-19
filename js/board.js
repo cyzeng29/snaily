@@ -269,5 +269,5 @@ const Board=(()=>{
  new ResizeObserver(()=>{if($('#v-board').classList.contains('on')&&openIdx<0)render()}).observe(el);
  addEventListener('snaily:view',e=>{if(e.detail==='board')show();else if(openIdx>=0){openIdx=-1;focusEl.hidden=true}});
  if(location.hash==='#board')show();
- return{render,toast,hash,TAPES};
+ return{render,toast,hash,TAPES,capFit,MAT,STRIP};
 })();

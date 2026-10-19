@@ -50,13 +50,23 @@ const Store=(()=>{
   try{const r=await req((await store('blobs')).get(blobId));if(!r)return'';const u=URL.createObjectURL(new Blob([r.data],{type:r.type}));urls.set(blobId,u);return u}
   catch(e){return''}}
  async function dropBlob(blobId){try{await req((await store('blobs','readwrite')).delete(blobId))}catch(e){}if(urls.has(blobId)){URL.revokeObjectURL(urls.get(blobId));urls.delete(blobId)}}
- /* once sent: the draft is kept as a record (its photos are uploaded, so their bytes go) and a fresh one starts */
- async function finish(sentId){if(!draft)return;const old=draft;old.sentId=sentId;old.updatedAt=new Date().toISOString();await flush();
+ /* any finished image (a sent card's front, back and prints) kept on this device; returns its id */
+ async function putBlob(blob){const blobId=id('b_'),data=await blob.arrayBuffer();
+  await req((await store('blobs','readwrite')).put({id:blobId,type:blob.type,data}));return blobId}
+ /* once sent: the draft is kept as a record holding exactly what went (front, back, prints, layout), the original
+    photos' bytes go, and a fresh draft starts. `kept` is {front,back,prints:[blob],layout,to,sender,deliverAt} */
+ async function finish(sentId,kept){if(!draft)return;const old=draft;
+  // it's already posted by now, so a full disk only costs the archive its copy
+  if(kept)try{const ids={front:await putBlob(kept.front),back:await putBlob(kept.back),prints:[]};for(const b of kept.prints)ids.prints.push(await putBlob(b));
+   old.sent={...ids,layout:kept.layout,to:kept.to,sender:kept.sender,deliverAt:kept.deliverAt}}catch(e){console.warn('no archive copy',e)}
+  old.sentId=sentId;old.updatedAt=new Date().toISOString();await flush();
   for(const p of old.photos)await dropBlob(p.blobId);old.photos=[];draft=old;await flush();draft=fresh();await flush()}
+ /* what was kept of a sent postcard (see finish), or null */
+ async function sentCard(sentId){try{const all=await req((await store('drafts')).getAll());const d=all.find(x=>x.sentId===sentId);return d&&d.sent||null}catch(e){return null}}
  /* postcards sent from / opened on this device, newest first (small: an id, link, dates and a thumbnail) */
  const list=k=>{try{return JSON.parse(localStorage.getItem(k))||[]}catch(e){return[]}};
  const add=(k,item)=>{const l=list(k).filter(x=>x.id!==item.id);l.unshift(item);try{localStorage.setItem(k,JSON.stringify(l.slice(0,100)))}catch(e){}};
  addEventListener('pagehide',flush);
- return{MAX_PHOTOS,load,save,flush,putPhoto,url,dropBlob,finish,get draft(){return draft},
+ return{MAX_PHOTOS,load,save,flush,putPhoto,url,dropBlob,finish,sentCard,get draft(){return draft},
   sent:()=>list('snaily-sent'),addSent:x=>add('snaily-sent',x),received:()=>list('snaily-received'),addReceived:x=>add('snaily-received',x)};
 })();

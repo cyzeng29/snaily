@@ -19,10 +19,16 @@
   if(!pc.arrived){state('wait');
    waitTxt.textContent='the snail is still carrying it. it arrives '+pc.deliverAt.toLocaleString([],{weekday:'long',hour:'numeric',minute:'2-digit'})+'.';
    clearInterval(timer);const t=()=>{const ms=pc.deliverAt-Date.now();count.textContent=left(ms);if(ms<=0){clearInterval(timer);setTimeout(go,1500)}};t();timer=setInterval(t,1000);return}
-  let f,b;try{[f,b]=await Promise.all([img(pc.front),img(pc.back)])}catch(e){lostTxt.textContent="the pictures didn't load. try again in a moment.";return state('lost')}
+  let f,b,ps=[];try{[f,b,...ps]=await Promise.all([pc.front,pc.back,...(pc.layout?pc.prints:[])].map(img))}catch(e){lostTxt.textContent="the pictures didn't load. try again in a moment.";return state('lost')}
   const fc=canvasOf(f),bc=canvasOf(b);state('card');
-  card=Card3D($('#oStage'),$('#ogl'),fc,bc);card.onSide=s=>{flipEl.querySelector('span').textContent=s?'see the front':'see the back'};
-  card.pop=matchMedia('(prefers-reduced-motion:reduce)').matches?0:1;card.show(true);flipEl.onclick=()=>card.flip();
+  const onSide=s=>{flipEl.querySelector('span').textContent=s?'see the front':'see the back'};
+  if(pc.layout){// the card with its photos, clipped on or spread around it, as it was sent
+   const stage=$('#oCmp'),ids=ps.map((_,k)=>'p'+k),canvas={};ids.forEach((id,k)=>{const q=pc.layout.prints[k];if(q)canvas[id]={...q}});
+   $('#oStage').hidden=true;stage.hidden=false;card=Compose.make(stage,{label:'Your postcard. Tap it to turn it over.'});card.onSide=onSide;
+   card.set({front:fc,back:bc,prints:ps.map((p,k)=>({id:ids[k],src:p,w:p.naturalWidth,h:p.naturalHeight})),mode:pc.layout.mode==='canvas'?'canvas':'clip',canvas});
+   if(!matchMedia('(prefers-reduced-motion:reduce)').matches)stage.animate([{opacity:0,transform:'translateY(24px) scale(.96)'},{opacity:1,transform:'none'}],{duration:600,easing:'cubic-bezier(.2,.9,.25,1)'})}
+  else{card=Card3D($('#oStage'),$('#ogl'),fc,bc);card.onSide=onSide;card.pop=matchMedia('(prefers-reduced-motion:reduce)').matches?0:1;card.show(true)}
+  flipEl.onclick=()=>card.flip();
   // keep a copy in this device's postcards
   const saved=Store.received().some(x=>x.id===id);saveB.disabled=saved;saveB.querySelector('span').textContent=saved?'saved ✓':'keep it';
   saveB.onclick=()=>{const t=document.createElement('canvas');t.width=230;t.height=340;t.getContext('2d').drawImage(fc,0,0,230,340);

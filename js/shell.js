@@ -43,7 +43,6 @@ $('#greet').textContent='Good '+part[0].toUpperCase()+part.slice(1);
    b.animate([{transform:'translate(0,0) scale(0)',opacity:1},{transform:`translate(${x*.8}px,${y*.8}px) scale(${s})`,opacity:1,offset:.45},{transform:`translate(${x}px,${y+8}px) scale(${s*.6}) rotate(${a>-1.57?90:-90}deg)`,opacity:0}],
     {duration:900+Math.random()*250,delay:120,easing:'cubic-bezier(.2,.8,.3,1)',fill:'both'})}};
 })();
-$$('[data-box]').forEach(b=>b.onclick=()=>{$$('[data-box]').forEach(x=>x.setAttribute('aria-pressed',x===b));$('#emptyMsg').textContent=`no ${b.dataset.box} postcards yet.`});
 function setTheme(v,save){const r=document.documentElement;v==='system'?r.removeAttribute('data-theme'):r.setAttribute('data-theme',v);
  $$('[data-theme-set]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.themeSet===v));if(save)try{localStorage.setItem('snaily-theme',v)}catch(e){}}
 $$('[data-theme-set]').forEach(b=>b.onclick=()=>setTheme(b.dataset.themeSet,true));

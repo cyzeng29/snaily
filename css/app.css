@@ -59,9 +59,6 @@ main{flex:1;min-height:0;position:relative}
 #stage,#pStage,#oStage{flex:1;min-height:0;position:relative}
 #v-sent{padding:0}
 .p-tools{display:flex;justify-content:center;gap:2px}
-#pArrange[aria-pressed="true"] span{opacity:1}
-#v-sent.arranging #pFlip{visibility:hidden}
-#v-sent.arranging #pgl{cursor:default}
 canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:grab}canvas:active{cursor:grabbing}
 .bar{display:flex;flex-direction:column;align-items:center;gap:8px;padding:2px 16px 12px}
 /* craft header (after Lost Post): centred title with a randomize link under it */
@@ -363,20 +360,7 @@ body:has(.focus:not([hidden])) .tabs{opacity:0;pointer-events:none}
 .word{font-size:29px}.greet{font-size:44px}.view h2{font-size:34px}.craft-head h2{font-size:32px}
 @media (prefers-reduced-motion:reduce){.act{transition:none}#wBack:hover,#next:hover{transform:none}}
 
-/* ===== send sheet ===== */
-.sheet{position:fixed;inset:0;z-index:90}
-.sheet[hidden]{display:none}
-.sheet-scrim{position:absolute;inset:0;background:rgba(43,16,12,.35)}
-.sheet-body{position:absolute;left:0;right:0;bottom:0;max-width:480px;margin:0 auto;background:var(--bg);color:var(--tx);border-radius:26px 26px 0 0;padding:22px 20px calc(env(safe-area-inset-bottom,0px) + 22px);box-shadow:0 -12px 32px rgba(43,16,12,.25)}
-.sheet-form,.sheet-done{display:flex;flex-direction:column;gap:14px}
-.sheet-done,.sheet.posted .sheet-form{display:none}
-.sheet.posted .sheet-done{display:flex}
-.sheet h3{margin:0;font:400 30px/1.1 'Instrument Serif',Georgia,serif;text-align:center}
-.sheet .seg{align-self:center;margin:0}
-.sheet .when,.sheet-done p{margin:0;text-align:center;font-size:15px}
-.sheet .primary{border:0;cursor:pointer;width:100%;font-family:inherit}
-.sheet .primary:disabled{opacity:.6;cursor:default}
-.sheet .acts{max-width:none}
+/* ===== form fields (the send view) ===== */
 .fld{display:flex;align-items:center;gap:12px;padding:0 16px;min-height:52px;border-radius:14px;background:var(--glass);box-shadow:inset 0 0 0 1px var(--line)}
 .fld span{opacity:.55;font-size:16px}
 .fld input{flex:1;min-width:0;border:0;outline:0;background:none;color:inherit;font:inherit;font-size:17px;padding:12px 0;-webkit-user-select:text;user-select:text}
@@ -393,7 +377,7 @@ body.viewing .tabs{display:none}
 .open-snail{width:132px;height:92px;background:var(--snail) center/contain no-repeat;animation:crawl 2.4s ease-in-out infinite}
 @keyframes crawl{0%,100%{transform:translateX(-8px) scaleX(1)}50%{transform:translateX(8px) scaleX(1.04)}}
 #v-open[data-state="wait"] #oWait,#v-open[data-state="lost"] #oLost{display:flex}
-#v-open:not([data-state="card"]) #oStage,#v-open:not([data-state="card"]) #oFlip,#v-open:not([data-state="card"]) #oSave{display:none}
+#v-open:not([data-state="card"]) #oStage,#v-open:not([data-state="card"]) #oCmp,#v-open:not([data-state="card"]) #oFlip,#v-open:not([data-state="card"]) #oSave{display:none}
 #v-open[data-state="lost"] .open-from{visibility:hidden}
 #v-open:not([data-state="card"]) .acts{justify-content:center}
 a.act{text-decoration:none}
@@ -425,3 +409,161 @@ body:has(#v-write.focused) .tabs{opacity:0;pointer-events:none;transform:transla
 .b-hint.on{opacity:.8}
 /* small phones: back / next on the board keep just their arrows so the envelope, + and trash stay centred (the words stay for screen readers) */
 @media (max-width:374px){.board-foot .act span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}}
+
+/* ===== arrange: the card and its photos, clipped on or spread around (js/compose.js) ===== */
+.p-stage{flex:1;min-height:0;position:relative}
+.p-stage[hidden]{display:none}
+#v-sent .p-tools{margin-top:12px}
+.lay[data-on="canvas"] .lay-thumb{transform:translateX(var(--w))}
+.reorder{margin-top:4px;transition:opacity .2s}
+.reorder.off{opacity:0;visibility:hidden;pointer-events:none}
+@media (hover:hover){.reorder:hover svg{transform:translateX(2px)}}
+.reorder:active svg{transform:none}
+.cmp{perspective:1800px;-webkit-user-select:none;user-select:none}
+.cmp-card{position:absolute;z-index:10;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.cmp-flip{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .75s cubic-bezier(.3,1.15,.4,1)}
+.cmp-card.flipped .cmp-flip{transform:rotateY(180deg)}
+.cmp-face{position:absolute;inset:0;overflow:hidden;border-radius:7.4%/5%;background:#fbf6e6;-webkit-backface-visibility:hidden;backface-visibility:hidden;
+ box-shadow:0 1px 2px rgba(43,16,12,.12),0 3px 8px -2px rgba(43,16,12,.16),0 26px 44px -20px rgba(43,16,12,.55)}
+.cmp-back{transform:rotateY(180deg)}
+.cmp-face>*{display:block;width:100%;height:100%}
+.cmp-print{position:absolute;left:0;top:0;border-radius:2px;transition:box-shadow .25s var(--ease),scale .25s var(--ease);
+ box-shadow:0 0 0 1px rgba(108,44,37,.1),0 1px 2px rgba(43,16,12,.14),0 10px 20px -10px rgba(43,16,12,.5)}
+/* when the card turns over, the clipped stack slips behind it halfway through */
+.cmp[data-mode="clip"] .cmp-print,.cmp-clip{transition:z-index 0s .32s,box-shadow .25s var(--ease),scale .25s var(--ease)}
+.cmp-print>*{display:block;width:100%;height:100%;border-radius:2px;pointer-events:none}
+.cmp-clip{position:absolute;left:0;top:0;color:var(--red);pointer-events:none;filter:drop-shadow(0 1.5px 1.5px rgba(43,16,12,.35))}
+.cmp-clip[hidden]{display:none}
+.cmp-clip svg{display:block;width:100%;height:100%;overflow:visible}
+.cmp.live[data-mode="canvas"] .cmp-print{cursor:grab;touch-action:none}
+@media (hover:hover){.cmp.live[data-mode="canvas"] .cmp-print:not(.drag):hover{scale:1.03;box-shadow:0 0 0 1px rgba(108,44,37,.12),0 2px 4px rgba(43,16,12,.14),0 18px 28px -12px rgba(43,16,12,.55)}}
+.cmp.live .cmp-print:focus-visible{outline:3px solid var(--blue);outline-offset:3px;scale:1.03}
+.cmp-print.drag{cursor:grabbing;scale:1.06;box-shadow:0 0 0 1px rgba(108,44,37,.12),0 4px 8px rgba(43,16,12,.16),0 30px 44px -16px rgba(43,16,12,.6)}
+@media (prefers-reduced-motion:reduce){.cmp-flip{transition:none}.cmp-print,.cmp[data-mode="clip"] .cmp-print{transition:z-index 0s}.cmp-print:hover,.cmp-print.drag,.cmp-print:focus-visible{scale:none!important}}
+
+/* overlays over the arrange step and the archive; the nav steps aside while one is open */
+.reo,.sendv,.arch-detail{position:fixed;inset:0;z-index:92}
+.reo[hidden],.sendv[hidden],.arch-detail[hidden],.confirm[hidden],.send-done[hidden],.sendv-body[hidden]{display:none}
+body:has(.reo:not([hidden])) .tabs,body:has(.sendv:not([hidden])) .tabs,body:has(.arch-detail:not([hidden])) .tabs{opacity:0;pointer-events:none;transform:translate(-50%,14px)}
+.reo .close-x,.sendv .close-x,.arch-detail .close-x{position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px)}
+
+/* ===== reorder: a carousel over the dimmed page ===== */
+.reo-scrim{position:absolute;inset:0;background:rgba(43,16,12,.66);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+.reo-body{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 64px) 0 calc(env(safe-area-inset-bottom,0px) + 32px);pointer-events:none;color:#F2EDBD}
+.reo-body>*{pointer-events:auto}
+.reo .close-x{color:#F2EDBD;background:rgba(255,255,255,.12);box-shadow:inset 0 0 0 1px rgba(255,255,255,.2)}
+.reo-body h3{margin:0;padding:0 56px;text-align:center;font:400 34px/1.1 'Instrument Serif',Georgia,serif}
+.reo-tip{margin:6px 20px 0;text-align:center;font-size:15px;opacity:.75}
+.reo-track{--it:min(66vw,300px,calc((100vh - 330px) * .72));--it:min(66vw,300px,calc((100dvh - 330px) * .72));flex:none;list-style:none;margin:18px 0 0;padding:16px max(20px,calc(50% - var(--it) / 2)) 18px;display:flex;gap:20px;overflow-x:auto;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.reo-track::-webkit-scrollbar{display:none}
+.reo.dragging .reo-track{scroll-snap-type:none}
+.reo-item{flex:none;width:var(--it);scroll-snap-align:center;display:flex;flex-direction:column;align-items:center;gap:12px}
+.reo-ph{position:relative;width:100%;border-radius:3px;cursor:grab;touch-action:pan-x;-webkit-touch-callout:none;box-shadow:0 2px 4px rgba(0,0,0,.2),0 26px 40px -18px rgba(0,0,0,.7);transition:box-shadow .2s}
+.reo-ph canvas{display:block;width:100%;height:auto;border-radius:3px;transition:opacity .2s}
+.reo.dragging .reo-ph{cursor:grabbing}
+/* the gap where the lifted photo will land */
+.reo-item.lifted .reo-ph{box-shadow:none;outline:2.5px dashed rgba(242,237,189,.8);outline-offset:4px;background:rgba(255,255,255,.07)}
+.reo-item.lifted .reo-ph canvas{opacity:0}
+.reo-item.lifted .reo-ctl{visibility:hidden}
+.reo-ghost{position:fixed;z-index:99;pointer-events:none;border-radius:3px;transform:rotate(-3deg) scale(1.05);box-shadow:0 34px 54px -16px rgba(0,0,0,.75)}
+/* delete: a small red badge on the photo's corner, unlike the round glass X that closes the overlay */
+.reo-del{position:absolute;z-index:2;top:-11px;right:-11px;width:32px;height:32px;padding:0;border:2px solid #fffdf4;border-radius:50%;background:var(--red);color:#fffdf4;display:grid;place-items:center;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.35);transition:transform .2s var(--ease)}
+.reo-del::after{content:'';position:absolute;inset:-7px}
+.reo-del svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round}
+@media (hover:hover){.reo-del:hover{transform:scale(1.12)}}
+.reo-ctl{display:flex;align-items:center;gap:8px}
+.reo-mv{width:40px;height:40px;padding:0;border:0;border-radius:50%;background:rgba(255,255,255,.12);color:#F2EDBD;display:grid;place-items:center;cursor:pointer}
+.reo-mv svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.reo-mv:disabled{opacity:.28;cursor:default}
+.reo-n{min-width:60px;text-align:center;font-size:14px;opacity:.85}
+.reo-del:focus-visible,.reo-mv:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.confirm{position:absolute;inset:0;z-index:5;display:grid;place-items:center;padding:16px;background:rgba(20,8,6,.45)}
+.confirm-card{width:min(320px,100%);padding:22px 20px 18px;border-radius:24px;background:var(--bg);color:var(--tx);text-align:center;box-shadow:0 30px 60px -20px rgba(0,0,0,.6)}
+.confirm-ph{display:block;width:84px;height:auto;margin:0 auto 14px;transform:rotate(-3deg);box-shadow:0 8px 16px -8px rgba(43,16,12,.5)}
+.confirm-card h4{margin:0;font:400 28px/1.1 'Instrument Serif',Georgia,serif}
+.confirm-card p{margin:8px 0 18px;font-size:15px;opacity:.75}
+.confirm-acts{display:flex;gap:10px}
+.confirm-acts .btn{flex:1;min-width:0;font-size:17px;transition:transform .18s var(--ease)}
+.btn.danger{background:var(--red);border-color:var(--red);color:#fffdf4}
+@media (prefers-reduced-motion:reduce){.reo-del,.reo-ph,.reo-ph canvas{transition:none}}
+
+/* ===== send: the card peeking out of its envelope ===== */
+.sendv{overflow:auto;background:var(--bg)}
+.sendv-body{min-height:100%;display:flex;flex-direction:column;align-items:center;padding:calc(env(safe-area-inset-top,0px) + var(--top-gap) + 8px) 20px calc(env(safe-area-inset-bottom,0px) + 28px)}
+/* the envelope's an object on the table, so it keeps its paper colours in the dark too */
+.env3d{--ew:min(300px,76vw);position:relative;flex:none;width:var(--ew);height:calc(var(--ew) * .64);margin-top:calc(var(--ew) * .44);perspective:900px;outline:0;-webkit-tap-highlight-color:transparent}
+.e-tilt{position:absolute;inset:0;transform-style:preserve-3d;transform:rotateX(10deg) rotateY(0) rotateZ(0);transition:transform .7s cubic-bezier(.3,1.3,.5,1),opacity .4s}
+.e-back,.e-front{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.e-back rect{fill:#efe5c6;stroke:#6C2C25;stroke-width:2.5}
+.e-front{z-index:3;filter:drop-shadow(0 -2px 3px rgba(43,16,12,.14))}
+.e-front path:first-child{fill:#fffdf4;stroke:#6C2C25;stroke-width:2.5;stroke-linejoin:round}
+.e-fold{fill:none;stroke:#6C2C25;stroke-width:2;stroke-linecap:round;opacity:.3}
+.e-card{position:absolute;z-index:2;left:27%;bottom:24%;width:46%;aspect-ratio:920/1360;transform-origin:50% 100%;transform:rotate(-5deg);transition:transform .6s cubic-bezier(.3,1.3,.5,1)}
+.e-card canvas{display:block;width:100%;height:100%;border-radius:7.4%/5%;box-shadow:0 2px 4px rgba(43,16,12,.18),0 14px 22px -10px rgba(43,16,12,.55)}
+.e-flap{position:absolute;z-index:1;left:0;top:0;width:100%;height:65%;transform-origin:50% 0;transform:rotateX(180deg);transition:transform .7s cubic-bezier(.3,1.25,.5,1)}
+.e-flap svg{display:block;width:100%;height:100%;overflow:visible}
+.e-flap path{fill:#f4ebcf;stroke:#6C2C25;stroke-width:2.5;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.e-shadow{position:absolute;left:4%;right:4%;bottom:-18px;height:28px;border-radius:50%;background:radial-gradient(closest-side,rgba(43,16,12,.34),transparent);transform:translateZ(-30px);transition:opacity .6s}
+/* hover (or a tap, or keyboard focus): it tips toward you and the flap starts to close */
+@media (hover:hover){.env3d:hover .e-tilt{transform:rotateX(4deg) rotateY(-12deg) rotateZ(-2.5deg) translateY(-6px)}.env3d:hover .e-flap{transform:rotateX(124deg)}.env3d:hover .e-card{transform:rotate(-1.5deg) translateY(5%)}.env3d:hover .e-shadow{opacity:.6}}
+.env3d.peek .e-tilt,.env3d:focus-visible .e-tilt{transform:rotateX(4deg) rotateY(-12deg) rotateZ(-2.5deg) translateY(-6px)}
+.env3d.peek .e-flap,.env3d:focus-visible .e-flap{transform:rotateX(124deg)}
+.env3d.peek .e-card,.env3d:focus-visible .e-card{transform:rotate(-1.5deg) translateY(5%)}
+.env3d:focus-visible{outline:3px solid var(--blue);outline-offset:16px;border-radius:14px}
+/* sending: the card slides in, the flap folds down over it (in front of the card once it's past upright) */
+.sendv.sealing .e-card{transform:rotate(0) translateY(34%)}
+.sendv.sealing .e-flap{transform:rotateX(0);z-index:4;transition:transform .6s .18s cubic-bezier(.4,.1,.3,1),z-index 0s .45s}
+.sendv.sealing .e-tilt{transform:rotateX(6deg) translateY(-4px);animation:wait 1.1s .8s ease-in-out infinite}
+@keyframes wait{50%{translate:0 -5px}}
+.sendv.away .e-tilt{animation:none;transform:translateY(-140%) rotate(-10deg) scale(.55);opacity:0;transition:transform .55s cubic-bezier(.5,0,.8,.4),opacity .35s .2s}
+.send-form{width:min(380px,100%);display:flex;flex-direction:column;gap:14px;margin-top:36px}
+.sendv .send-form h2{margin:0 0 2px;text-align:center}
+.send-form .seg{align-self:center;margin:0}
+.send-form .when{margin:0;text-align:center;font-size:15px}
+.send-form .primary,.send-done .primary{border:0;cursor:pointer;font-family:inherit}
+.send-form .primary{width:100%}
+.send-form .primary:disabled{opacity:.6;cursor:progress}
+@media (prefers-reduced-motion:reduce){.e-tilt,.e-flap,.e-card{transition:none}.sendv.sealing .e-tilt{animation:none}.env3d:hover .e-tilt,.env3d.peek .e-tilt,.env3d:focus-visible .e-tilt{transform:rotateX(10deg)}}
+
+/* ===== sent: the completion screen ===== */
+.send-done{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:calc(env(safe-area-inset-top,0px) + 40px) 24px calc(env(safe-area-inset-bottom,0px) + 32px);text-align:center}
+.done-env{position:relative;width:min(220px,58vw);margin-bottom:10px;transform:rotate(-4deg)}
+.done-env svg{display:block;width:100%;overflow:visible;filter:drop-shadow(0 14px 18px rgba(43,16,12,.25))}
+.d-body{fill:#fffdf4;stroke:#6C2C25;stroke-width:2.5}
+.d-flap,.d-fold{fill:none;stroke:#6C2C25;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.d-fold{stroke-width:2;opacity:.3}
+.d-stamp rect{fill:var(--red);stroke:#6C2C25;stroke-width:2;stroke-dasharray:3 2.2}
+.done-snail{position:absolute;right:-22%;bottom:-16%;width:48%;aspect-ratio:480/334;background:var(--snail) center/contain no-repeat;animation:crawl 2.4s ease-in-out infinite}
+.sendv .send-done h2{margin:8px 0 0;font-size:42px}
+#doneH:focus{outline:0}
+.done-txt{margin:0 0 6px;max-width:330px;opacity:.8}
+.send-done .primary{min-width:230px}
+.done-copy{min-height:40px}
+.done-acts{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:14px}
+.done-acts .btn{min-width:160px;font-size:16px}
+@media (prefers-reduced-motion:reduce){.done-snail{animation:none}}
+
+/* ===== archive ===== */
+.arch{list-style:none;margin:0;padding:0 0 24px;display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:20px 14px}
+.arch:empty{display:none}
+.empty[hidden]{display:none}
+.arch-item{width:100%;padding:0;border:0;border-radius:14px;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+.arch-pic{display:block;width:100%;aspect-ratio:300/340;border-radius:14px;overflow:hidden;background:#F2EDBD;box-shadow:inset 0 0 0 1px var(--line);transition:transform .25s cubic-bezier(.3,1.35,.5,1)}
+.arch-pic img{display:block;width:100%;height:100%;object-fit:contain}
+@media (hover:hover){.arch-item:hover .arch-pic{transform:translateY(-3px) rotate(-1deg)}}
+.arch-item:focus-visible{outline:3px solid var(--blue);outline-offset:4px}
+.arch-who{font-size:15px;font-weight:600;padding:0 2px}
+.arch-date{font-size:13px;padding:0 2px}
+.arch-detail{background:var(--bg)}
+.arch-body{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;padding:calc(env(safe-area-inset-top,0px) + var(--top-gap)) 16px calc(env(safe-area-inset-bottom,0px) + 20px)}
+.arch-body h3{margin:0;padding:0 52px;text-align:center;font:400 34px/1.1 'Instrument Serif',Georgia,serif}
+.arch-sub{margin:6px 0 0;font-size:14px;text-align:center}
+.arch-stage{width:100%;margin-top:8px}
+.arch-old{position:absolute;inset:0;margin:auto;max-width:80%;max-height:90%;object-fit:contain}
+.arch-note{margin:6px 0;text-align:center;font-size:14px}
+.arch-note[hidden],.arch-acts .flip[hidden]{display:none}
+.arch-acts{display:flex;gap:6px;justify-content:center}
+@media (prefers-reduced-motion:reduce){.arch-pic{transition:none}.arch-item:hover .arch-pic{transform:none}}
+/* the WebGL rule above makes every canvas fill its box; the prints, the carousel and the envelope's card are just pictures */
+.cmp canvas,.reo canvas,.sendv canvas{position:static;inset:auto;touch-action:auto;cursor:inherit}
+.cmp.live[data-mode="canvas"] .cmp-print canvas{touch-action:none}

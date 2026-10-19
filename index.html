@@ -19,7 +19,7 @@
 <link href="https://cdn.jsdelivr.net/npm/@fontsource/open-sauce-sans@5.3.0/600.css" rel="stylesheet">
 <script>try{const t=localStorage.getItem('snaily-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 <!-- bump ?v= when css/js change, so browsers drop their cached copies -->
-<link rel="stylesheet" href="css/app.css?v=18">
+<link rel="stylesheet" href="css/app.css?v=19">
 </head>
 <body class="intro">
 <header class="top">
@@ -94,41 +94,79 @@
     </div>
   </section>
 
-  <section class="view" id="v-sent" aria-label="Review your postcard">
-    <!-- the finished postcard: the crafted card with the photos piled on top, the message on the back (js/collage.js, js/preview.js) -->
+  <section class="view" id="v-sent" aria-label="Arrange your postcard">
+    <!-- the postcard with its photos, clipped on or spread around it (js/compose.js, js/preview.js) -->
     <div class="craft-head">
       <h2>Your Postcard</h2>
       <div class="p-tools">
-      <button class="shuffle" id="pShuffle"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h3c2.2 0 3.4 1.2 4.5 3l3 5c1 1.6 2.2 2 3.7 2H21M3 17h3c1.5 0 2.5-.6 3.4-1.6M21 7h-3.8c-1.5 0-2.5.6-3.4 1.6M18 4l3 3-3 3M18 14l3 3-3 3"/></svg><span>randomize</span></button>
-      <button class="shuffle" id="pArrange" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/></svg><span>arrange</span></button>
+        <div class="lay mode" role="group" aria-label="How the photos go with the card">
+          <span class="lay-thumb" aria-hidden="true"></span>
+          <button data-mode="clip" aria-label="Paper clip: the photos clipped to the card" title="Paper clip" aria-pressed="true"><svg viewBox="-9 -1 42 64" aria-hidden="true"><path d="M9 40V14a4 4 0 0 1 8 0v38a7 7 0 0 1-14 0V10a9 9 0 0 1 18 0v34" stroke-width="4.4"/></svg></button>
+          <button data-mode="canvas" aria-label="Canvas: the photos spread around the card" title="Canvas" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8.5" y="6.5" width="7" height="11" rx="1.2"/><rect x="2.6" y="2.8" width="5" height="5.6" rx=".8" transform="rotate(-9 5.1 5.6)"/><rect x="16.6" y="3.4" width="5" height="5.6" rx=".8" transform="rotate(8 19.1 6.2)"/><rect x="2.4" y="14.8" width="5" height="5.6" rx=".8" transform="rotate(7 4.9 17.6)"/><rect x="16.8" y="15.4" width="5" height="5.6" rx=".8" transform="rotate(-6 19.3 18.2)"/></svg></button>
+        </div>
       </div>
+      <button class="shuffle reorder" id="pReorder" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7.5h13M15 4.5l3 3-3 3M19 16.5H6M9 13.5l-3 3 3 3"/></svg><span>Reorder photos</span></button>
     </div>
-    <div id="pStage"><canvas id="pgl" aria-label="Your postcard: your photos on the front of your card, your message on the back. Drag to turn it, tap to flip. Use arrange to move the photos."></canvas></div>
+    <div class="p-stage" id="pStage"></div>
+    <p class="sr" id="pLive" aria-live="polite"></p>
     <button class="flip" id="pFlip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3M18 3v4h-4M6 21v-4h4"/></svg><span>see the back</span></button>
     <div class="bar">
       <div class="acts">
         <button class="act" id="pBack"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg><span>back</span></button>
-        <button class="act" id="pNext" aria-label="next: send it" aria-haspopup="dialog"><span>next</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+        <button class="act" id="pNext" aria-haspopup="dialog"><span>Send off</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
       </div>
     </div>
-    <!-- send sheet: who it's from and when it arrives, then the link to share (js/preview.js) -->
-    <div class="sheet" id="pSheet" hidden>
-      <div class="sheet-scrim" id="pScrim"></div>
-      <div class="sheet-body" role="dialog" aria-modal="true" aria-labelledby="pSheetH">
-        <form class="sheet-form" id="pForm">
-          <h3 id="pSheetH">send your postcard</h3>
-          <label class="fld"><span>from</span><input id="pFrom" maxlength="40" placeholder="your name" autocomplete="given-name" enterkeyhint="send"></label>
-          <div class="seg" role="group" aria-label="When it arrives"><button type="button" data-when="now" aria-pressed="true">now</button><button type="button" data-when="snail" aria-pressed="false">by snail 🐌</button></div>
-          <p class="muted when" id="pWhen"></p>
-          <button class="primary" type="submit" id="pSend">send</button>
-        </form>
-        <div class="sheet-done" id="pDone" aria-live="polite">
-          <h3>posted!</h3>
-          <p class="muted"></p>
-          <button class="primary" type="button" id="pShare">share the link</button>
-          <div class="acts"><button class="act" type="button" id="pCopy"><span>copy link</span></button><button class="act" type="button" id="pFinish"><span>done</span></button></div>
+
+    <!-- reorder: the photos in a row to swipe through; drag one (or use its arrows) to move it, its x to delete it -->
+    <div class="reo" id="reo" hidden>
+      <div class="reo-scrim" id="reoScrim"></div>
+      <div class="reo-body" role="dialog" aria-modal="true" aria-labelledby="reoH" aria-describedby="reoTip">
+        <button class="close-x" id="reoClose" aria-label="Close reorder"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg></button>
+        <h3 id="reoH">Reorder photos</h3>
+        <p class="reo-tip" id="reoTip"></p>
+        <ol class="reo-track" id="reoTrack"></ol>
+        <p class="sr" id="reoLive" aria-live="assertive"></p>
+      </div>
+      <div class="confirm" id="reoConfirm" hidden>
+        <div class="confirm-card" role="alertdialog" aria-modal="true" aria-labelledby="cfH" aria-describedby="cfP">
+          <canvas class="confirm-ph" id="cfPh" aria-hidden="true"></canvas>
+          <h4 id="cfH">Delete this photo?</h4>
+          <p id="cfP">It comes off your postcard and your photo board.</p>
+          <div class="confirm-acts"><button class="btn" id="cfCancel">Cancel</button><button class="btn danger" id="cfDelete">Delete</button></div>
         </div>
       </div>
+    </div>
+
+    <!-- send: the card peeks out of its envelope; who it's from and when it arrives, then the completion screen -->
+    <div class="sendv" id="sendv" hidden>
+      <div class="sendv-body" role="dialog" aria-modal="true" aria-labelledby="sendH">
+        <button class="close-x" id="sendClose" aria-label="Close and go back to arranging"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg></button>
+        <div class="env3d" id="env3d" tabindex="0" role="img" aria-label="Your postcard, peeking out of its envelope">
+          <div class="e-tilt">
+            <div class="e-shadow"></div>
+            <div class="e-flap"><svg viewBox="0 0 300 124" preserveAspectRatio="none"><path d="M4 3h292L156 118a9 9 0 0 1-12 0Z"/></svg></div>
+            <svg class="e-back" viewBox="0 0 300 192"><rect x="3" y="3" width="294" height="186" rx="9"/></svg>
+            <div class="e-card" id="eCard"></div>
+            <svg class="e-front" viewBox="0 0 300 192"><path d="M3 62 144 136a13 13 0 0 0 12 0L297 62v118a9 9 0 0 1-9 9H12a9 9 0 0 1-9-9Z"/><path class="e-fold" d="M8 184 112 116M292 184 188 116"/></svg>
+          </div>
+        </div>
+        <form class="send-form" id="pForm" novalidate>
+          <h2 id="sendH">Send Your Postcard</h2>
+          <label class="fld"><span>from</span><input id="pFrom" maxlength="40" placeholder="your name" autocomplete="given-name" enterkeyhint="send" required></label>
+          <div class="seg" role="group" aria-label="When it arrives"><button type="button" data-when="now" aria-pressed="true">now</button><button type="button" data-when="snail" aria-pressed="false">by snail</button></div>
+          <p class="muted when" id="pWhen"></p>
+          <button class="primary" type="submit" id="pSend">Send</button>
+        </form>
+      </div>
+      <!-- shown only once it has really been posted -->
+      <section class="send-done" id="pDone" hidden aria-labelledby="doneH">
+        <div class="done-env" aria-hidden="true"><svg viewBox="0 0 300 192"><rect class="d-body" x="3" y="3" width="294" height="186" rx="9"/><path class="d-flap" d="M4 6 144 104a13 13 0 0 0 12 0L296 6"/><path class="d-fold" d="M8 184 112 112M292 184 188 112"/><g class="d-stamp" transform="translate(222 22) rotate(4)"><rect width="52" height="40" rx="3"/></g></svg><span class="done-snail"></span></div>
+        <h2 id="doneH" tabindex="-1">Posted!</h2>
+        <p class="done-txt" id="doneTxt"></p>
+        <button class="primary" type="button" id="pShare">Share the link</button>
+        <button class="act done-copy" type="button" id="pCopy"><span>copy link</span></button>
+        <div class="done-acts"><button class="btn" type="button" id="pView">View it in the Archive</button><button class="btn solid" type="button" id="pHome">Back home</button></div>
+      </section>
     </div>
   </section>
 
@@ -136,6 +174,7 @@
   <section class="view" id="v-open" aria-label="A postcard for you" data-state="loading">
     <p class="open-from" id="oFrom" aria-live="polite"></p>
     <div id="oStage"><canvas id="ogl" aria-label="Your postcard. Drag to turn it, tap to flip it over."></canvas></div>
+    <div class="p-stage" id="oCmp" hidden></div>
     <div class="open-msg" id="oWait"><div class="open-snail" aria-hidden="true"></div><h2>on its way</h2><p id="oWaitTxt"></p><p class="muted" id="oCount" aria-live="off"></p></div>
     <div class="open-msg" id="oLost"><div class="open-snail" aria-hidden="true"></div><h2>this postcard got lost</h2><p class="muted" id="oLostTxt">check the link, or ask them to send it again.</p></div>
     <button class="flip" id="oFlip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3M18 3v4h-4M6 21v-4h4"/></svg><span>see the back</span></button>
@@ -147,12 +186,24 @@
     </div>
   </section>
 
-  <section class="view" id="v-gallery" aria-label="Postcards">
-    <h2>postcards</h2>
+  <section class="view" id="v-gallery" aria-label="Archive">
+    <h2>Archive</h2>
     <div class="seg" role="group" aria-label="Which postcards">
       <button aria-pressed="true" data-box="sent">sent</button><button aria-pressed="false" data-box="received">received</button>
     </div>
+    <ul class="arch" id="arch" aria-label="Postcards"></ul>
     <p class="empty muted" id="emptyMsg">no sent postcards yet.</p>
+    <!-- one sent postcard, just as it went (js/archive.js) -->
+    <div class="arch-detail" id="archD" hidden>
+      <div class="arch-body" role="dialog" aria-modal="true" aria-labelledby="archH">
+        <button class="close-x" id="archClose" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg></button>
+        <h3 id="archH"></h3>
+        <p class="muted arch-sub" id="archSub"></p>
+        <div class="p-stage arch-stage" id="archStage"></div>
+        <p class="muted arch-note" id="archNote" hidden></p>
+        <div class="arch-acts"><button class="flip" id="archFlip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3M18 3v4h-4M6 21v-4h4"/></svg><span>see the back</span></button><button class="flip" id="archCopy"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg><span>copy link</span></button></div>
+      </div>
+    </div>
   </section>
 
   <section class="view" id="v-settings" aria-label="Settings">
@@ -167,7 +218,7 @@
 </main>
 <nav class="tabs" aria-label="Main">
   <!-- geometric line icons redrawn from the hand-drawn glass set, snail eye stalks and all; they take the text colour, so they read on the clear nav in both themes -->
-  <button class="tab t-gallery" data-go="gallery" aria-label="Postcards"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 7.2A1.7 1.7 0 0 1 5.2 5.5h3.6l1.8 2.3h8.2a1.7 1.7 0 0 1 1.7 1.7v9a1.5 1.5 0 0 1-1.5 1.5H5a1.5 1.5 0 0 1-1.5-1.5z"/><path d="M13.7 7.8q-.2-2-.8-3.6M15.9 7.8q.2-2 .9-3.6"/><circle class="eye" cx="12.8" cy="3.5" r="1.15"/><circle class="eye" cx="17" cy="3.5" r="1.15"/></svg></button>
+  <button class="tab t-gallery" data-go="gallery" aria-label="Archive"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 7.2A1.7 1.7 0 0 1 5.2 5.5h3.6l1.8 2.3h8.2a1.7 1.7 0 0 1 1.7 1.7v9a1.5 1.5 0 0 1-1.5 1.5H5a1.5 1.5 0 0 1-1.5-1.5z"/><path d="M13.7 7.8q-.2-2-.8-3.6M15.9 7.8q.2-2 .9-3.6"/><circle class="eye" cx="12.8" cy="3.5" r="1.15"/><circle class="eye" cx="17" cy="3.5" r="1.15"/></svg></button>
   <button class="tab t-home" data-go="home" aria-label="Home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1.9 10.2 10.4 2.7l8.5 7.5M5 10.2l5.4-4.7 5.4 4.7M5 10.2V20M15.8 10.2V20"/><path d="M8.2 20v-5.4a2.2 2.2 0 0 1 4.4 0V20"/><path d="M3 20h15.2a2.5 2.5 0 0 0 2.5-2.5v-1"/><path d="M20.7 16.5q-.9-1.5-.8-3.3M20.7 16.5q1-1.2 1.6-2.8"/><circle class="eye" cx="19.9" cy="12.5" r="1.05"/><circle class="eye" cx="22.4" cy="13" r="1.05"/></svg></button>
   <button class="tab t-settings" data-go="settings" aria-label="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><g transform="translate(12 14.3) scale(.9) translate(-12 -13.2)" stroke-width="2"><path d="M10.02 7.22 10.33 4.97 13.67 4.97 13.98 7.22 14.83 7.57 16.64 6.2 19 8.56 17.63 10.37 17.98 11.22 20.23 11.53 20.23 14.87 17.98 15.18 17.63 16.03 19 17.84 16.64 20.2 14.83 18.83 13.98 19.18 13.67 21.43 10.33 21.43 10.02 19.18 9.17 18.83 7.36 20.2 5 17.84 6.37 16.03 6.02 15.18 3.77 14.87 3.77 11.53 6.02 11.22 6.37 10.37 5 8.56 7.36 6.2 9.17 7.57z"/><circle cx="12" cy="13.2" r="2.7"/></g><path d="M10.5 8.2q-.4-1.7-1.6-3.1M13.6 8.2q.5-1.8 1.8-3.2"/><circle class="eye" cx="8.5" cy="4.4" r="1.15"/><circle class="eye" cx="15.9" cy="4.3" r="1.15"/></svg></button>
 </nav>
@@ -208,20 +259,21 @@
 <div id="intro" aria-hidden="true"><div id="shake"><div class="ink"></div><div id="stampWrap"><div class="stamp full"></div><div class="stamp empty"></div></div></div></div>
 <div id="fly" aria-hidden="true"><div class="fx"><div class="fy"><div class="fs"><div class="fq"><div class="fr"></div></div></div></div></div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="js/store.js?v=18"></script>
-<script src="js/designs.js?v=18"></script>
-<script src="js/postcard.js?v=18"></script>
-<script src="js/shell.js?v=18"></script>
-<script src="js/craft.js?v=18"></script>
-<script src="js/ink.js?v=18"></script>
-<script src="js/board.js?v=18"></script>
-<script src="js/send.js?v=18"></script>
+<script src="js/store.js?v=19"></script>
+<script src="js/designs.js?v=19"></script>
+<script src="js/postcard.js?v=19"></script>
+<script src="js/shell.js?v=19"></script>
+<script src="js/craft.js?v=19"></script>
+<script src="js/ink.js?v=19"></script>
+<script src="js/board.js?v=19"></script>
+<script src="js/send.js?v=19"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="js/config.js?v=18"></script>
-<script src="js/net.js?v=18"></script>
-<script src="js/collage.js?v=18"></script>
-<script src="js/card3d.js?v=18"></script>
-<script src="js/preview.js?v=18"></script>
-<script src="js/open.js?v=18"></script>
+<script src="js/config.js?v=19"></script>
+<script src="js/net.js?v=19"></script>
+<script src="js/card3d.js?v=19"></script>
+<script src="js/compose.js?v=19"></script>
+<script src="js/preview.js?v=19"></script>
+<script src="js/archive.js?v=19"></script>
+<script src="js/open.js?v=19"></script>
 </body>
 </html>
