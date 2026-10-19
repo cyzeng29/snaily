@@ -39,13 +39,14 @@ const Prints=(()=>{
    fixed AREA×AREA card widths that always fits the stage, and photos are kept inside it, so none can end up off screen.
    The review step uses it to arrange; the archive and the postcard link use it just to look (and turn the card over). */
 const Compose=(()=>{
- const AR=920/1360,AREA=2.3,CLIP_W=.41,CANVAS_W=.42;
+ const AR=920/1360,AREA=2.3,CLIP_W=.5,CANVAS_W=.42;
  // canvas mode, before anything is moved: around the card, a little crooked, some overlapping its edges
  const SLOTS=[[-.8,-.55,-7],[.82,-.42,6],[-.84,.42,5],[.8,.6,-6],[-.02,-.9,3],[.04,.9,-4]];
  const hash=s=>{let h=2166136261;for(const c of s)h=Math.imul(h^c.charCodeAt(0),16777619);return h>>>0};
  const wob=(id,k)=>(hash(id+':'+k)%1000)/1000*2-1;
  const calm=()=>matchMedia('(prefers-reduced-motion:reduce)').matches;
- const CLIP='<svg viewBox="0 0 24 62"><path d="M9 40V14a4 4 0 0 1 8 0v38a7 7 0 0 1-14 0V10a9 9 0 0 1 18 0v34" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M9 40V14a4 4 0 0 1 8 0v38a7 7 0 0 1-14 0V10a9 9 0 0 1 18 0v34" fill="none" stroke="#fff" stroke-opacity=".45" stroke-width=".9" stroke-linecap="round" transform="translate(-.5 -.4)"/></svg>';
+ // an antique brass bookmark clip: thin aged wire with a round pad soldered to its top
+ const CLIP='<svg viewBox="0 0 24 62"><defs><radialGradient id="cmpPad" cx=".36" cy=".32" r=".75"><stop offset="0" stop-color="#a8955f"/><stop offset=".55" stop-color="#75653c"/><stop offset="1" stop-color="#463a20"/></radialGradient></defs><path d="M9 40V14a4 4 0 0 1 8 0v38a7 7 0 0 1-14 0V10a9 9 0 0 1 18 0v34" fill="none" stroke="#4f4326" stroke-width="1.9" stroke-linecap="round"/><path d="M9 40V14a4 4 0 0 1 8 0v38a7 7 0 0 1-14 0V10a9 9 0 0 1 18 0v34" fill="none" stroke="#c7b583" stroke-opacity=".55" stroke-width=".6" stroke-linecap="round" transform="translate(-.35 -.3)"/><circle cx="8" cy="6.5" r="6.2" fill="url(#cmpPad)" stroke="#3d331c" stroke-width=".6"/><circle cx="8" cy="6.5" r="5.2" fill="none" stroke="#c2b07c" stroke-opacity=".35" stroke-width=".45"/><path d="M4.6 4.4a4.4 4.4 0 0 1 3.6-2.3" fill="none" stroke="#e0d2a4" stroke-opacity=".5" stroke-width=".7" stroke-linecap="round"/><g fill="#3d331c" fill-opacity=".35"><circle cx="10.2" cy="8.6" r=".5"/><circle cx="6.1" cy="9.3" r=".35"/><circle cx="9.4" cy="4.2" r=".3"/></g></svg>';
  /* where each photo starts on the canvas (in order); keeps any spot that's already set */
  function spread(ids,arr={}){ids.forEach((id,i)=>{if(arr[id])return;const s=SLOTS[i%SLOTS.length];
   arr[id]={x:s[0]+wob(id,'x')*.04,y:s[1]+wob(id,'y')*.04,r:s[2]+wob(id,'r')*2,z:ids.length-i}});
@@ -65,7 +66,7 @@ const Compose=(()=>{
     if(d.canvas)arr=d.canvas;spread(prints.map(p=>p.id),arr);
     if(d.mode)mode=d.mode;stage.dataset.mode=mode;paintFocus();layout(!!d.animate)},
    setMode(m){if(m===mode)return;mode=m;stage.dataset.mode=m;layout(true);paintFocus()},
-   flip(){back=!back;card.classList.toggle('flipped',back);stage.classList.toggle('flipped',back);layout(false);if(api.onSide)api.onSide(back)},
+   flip(){back=!back;card.classList.toggle('flipped',back);stage.classList.toggle('flipped',back);layout('flip');if(api.onSide)api.onSide(back)},
    canvas:()=>arr,layout:()=>layout(false)};
   function face(sel,src){const f=card.querySelector(sel);f.textContent='';const el=src.tagName==='CANVAS'?copy(src):src.cloneNode();el.alt='';f.append(el)}
   const copy=src=>{const c=document.createElement('canvas');c.width=src.width;c.height=src.height;c.getContext('2d').drawImage(src,0,0);return c};
@@ -83,27 +84,33 @@ const Compose=(()=>{
   // in canvas mode each photo can be focused and moved with the arrow keys
   function paintFocus(){for(const[,e]of els){const on=interactive&&mode==='canvas';e.tabIndex=on?0:-1;on?e.setAttribute('aria-roledescription','movable photo'):e.removeAttribute('aria-roledescription')}}
 
-  function place(e,t,animate){if(animate&&e._t&&e._t!==t&&!calm())e.animate([{transform:e._t},{transform:t}],{duration:480,easing:'cubic-bezier(.2,.85,.25,1.05)'});e.style.transform=t;e._t=t}
+  // animate 'flip' turns with the card (same length and curve as .cmp-flip); any other truthy value glides
+  function place(e,t,animate){if(animate&&e._t&&e._t!==t&&!calm())e.animate([{transform:e._t},{transform:t}],animate==='flip'?{duration:750,easing:'cubic-bezier(.3,1.15,.4,1)'}:{duration:480,easing:'cubic-bezier(.2,.85,.25,1.05)'});e.style.transform=t;e._t=t}
   const lim=(v,half)=>Math.max(-AREA/2+half+.02,Math.min(AREA/2-half-.02,v));
   function layout(animate){const W=stage.clientWidth,H=stage.clientHeight;if(!W||!H)return;
    let cw,cx=W/2,cy=H/2;
    if(mode==='clip'){cw=Math.min(W*.6,H*.8*AR);cy=H/2+cw*.07}else cw=Math.min(W,H)/AREA;
    const ch=cw/AR,old=geo;geo={cx,cy,cw};
    const box={l:cx-cw/2,t:cy-ch/2,w:cw,h:ch};
-   if(animate&&card._box&&!calm()){const o=card._box,k=o.w/box.w;card.animate([{transformOrigin:'0 0',transform:`translate(${o.l-box.l}px,${o.t-box.t}px) scale(${k})`},{transformOrigin:'0 0',transform:'none'}],{duration:480,easing:'cubic-bezier(.2,.85,.25,1.05)'})}
+   if(animate===true&&card._box&&!calm()){const o=card._box,k=o.w/box.w;card.animate([{transformOrigin:'0 0',transform:`translate(${o.l-box.l}px,${o.t-box.t}px) scale(${k})`},{transformOrigin:'0 0',transform:'none'}],{duration:480,easing:'cubic-bezier(.2,.85,.25,1.05)'})}
    Object.assign(card.style,{left:box.l+'px',top:box.t+'px',width:cw+'px',height:ch+'px'});card._box=box;
    const n=prints.length;
+   // clipped on, the stack and clip turn over with the card, about its vertical centre line (d: that line, from the element's centre)
+   const f=mode==='clip'&&back?180:0,turn=d=>`translateX(${d}px) rotateY(${f}deg) translateX(${-d}px) `;
    prints.forEach((p,i)=>{const e=els.get(p.id);if(!e)return;const pw=(mode==='clip'?CLIP_W:CANVAS_W)*cw,ph=pw/e._ar;let x,y,r,z;
-    if(mode==='clip'){// a loose pile: each a little off, the lower ones peeking out further
-     const side=i%2?1:-1;x=.42+(i?side*.045:0)+wob(p.id,'cx')*.02;y=-.47+Math.min(i,3)*.028+wob(p.id,'cy')*.02;r=i?side*(5+wob(p.id,'cr')*2.5):-3;z=20+n-i;
+    if(mode==='clip'){// a fan held at the top by the clip: the lower ones swing out alternately, more to the left, so several show
+     const k=Math.min(Math.ceil(i/2),2),side=i%2?1:-1,h=ph/cw/2;
+     r=i?-side*((side>0?10:13)*k+wob(p.id,'cr')*2):-2;const a=r*Math.PI/180;
+     const px=.3+(i?side*(side>0?.05:.09)*k:0)+wob(p.id,'cx')*.015,top=-.62+k*.012+wob(p.id,'cy')*.01;
+     x=px-h*Math.sin(a);y=top+h*Math.cos(a);z=20+n-i;
      if(back)z=1}
     else{const a=arr[p.id];a.x=lim(a.x,pw/cw/2);a.y=lim(a.y,ph/cw/2);x=a.x;y=a.y;r=a.r;z=10+(a.z||0)}
     e.style.width=pw+'px';e.style.height=ph+'px';e.style.zIndex=z;
-    place(e,`translate(${cx+x*cw-pw/2}px,${cy+y*cw-ph/2}px) rotate(${r}deg)`,animate)});
+    place(e,turn(cx-pw/2)+`translate(${cx+x*cw-pw/2}px,${cy+y*cw-ph/2}px) rotate(${r}deg)`,animate)});
    // the clip grips the stack and the card's top edge together
    clip.hidden=mode!=='clip'||!n;
-   if(!clip.hidden){const L=cw*.3;Object.assign(clip.style,{width:L*24/62+'px',height:L+'px',zIndex:back?2:40});
-    place(clip,`translate(${cx+.3*cw-L*12/62}px,${cy-ch/2-L*.42}px) rotate(4deg)`,animate)}}
+   if(!clip.hidden){const L=cw*.34;Object.assign(clip.style,{width:L*24/62+'px',height:L+'px',zIndex:back?2:40});
+    place(clip,turn(cx-L*12/62)+`translate(${cx+.3*cw-L*12/62}px,${cy-ch/2-L*.42}px) rotate(4deg)`,animate)}}
   new ResizeObserver(()=>layout(false)).observe(stage);
 
   /* canvas mode: drag a photo around; it comes to the front and stays inside the canvas */

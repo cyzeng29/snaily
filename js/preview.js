@@ -143,8 +143,8 @@
  function thumb(cs){const t=document.createElement('canvas');t.width=300;t.height=340;const g=t.getContext('2d'),cw=200,ch=cw*1360/920,x0=30,y0=34;
   // a JPEG has no see-through, so it sits on the paper colour its tile uses
   g.fillStyle='#F2EDBD';g.fillRect(0,0,300,340);g.fillStyle='#fbf6e6';g.shadowColor='rgba(43,16,12,.3)';g.shadowBlur=10;g.shadowOffsetY=4;g.fillRect(x0,y0,cw,ch);g.shadowColor='transparent';g.drawImage(cfs[st.d],x0,y0,cw,ch);
-  cs.slice(0,3).reverse().forEach((c,k,a)=>{const i=a.length-1-k,w=cw*.44,h=w*c.height/c.width;g.save();g.translate(x0+cw*.92-i*3,y0+cw*.2+i*4);g.rotate((i?(i%2?5:-6):-3)*Math.PI/180);
-   g.shadowColor='rgba(43,16,12,.3)';g.shadowBlur=6;g.shadowOffsetY=2;g.drawImage(c,-w/2,-h/2,w,h);g.restore()});
+  cs.slice(0,3).reverse().forEach((c,k,a)=>{const i=a.length-1-k,w=cw*.5,h=w*c.height/c.width;g.save();g.translate(x0+cw*(.8+[0,.05,-.09][i]),y0+cw*.12);g.rotate([-2,-10,13][i]*Math.PI/180);
+   g.shadowColor='rgba(43,16,12,.3)';g.shadowBlur=6;g.shadowOffsetY=2;g.drawImage(c,-w/2,0,w,h);g.restore()});
   return t.toDataURL('image/jpeg',.75)}
 
  form.onsubmit=async e=>{e.preventDefault();if(busy||posted)return;
