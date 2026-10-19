@@ -4,8 +4,8 @@ let editing=null;const st={d:0,to:'',txt:'',paper:null,ink:null,stamps:[]};
 /* portrait card: texture size in px, world size, corner radius, thickness */
 const W=920,H=1360,CW=2.3,CH=3.4,CR=.17,T=.05;
 const cv=()=>{const c=document.createElement('canvas');c.width=W;c.height=H;return c},cfs=D.map(cv),cb=cv(),img=new Image();
-/* the back: the address up top beside the stamp, then the message under a dashed line */
-const R={to:{x:80,y:96,w:540,h:252,lh:84},txt:{x:80,y:432,w:760,h:840,lh:84}};
+/* the back: "To:" and two lines for who it's for up top beside the stamp, then the message under a dashed line */
+const R={to:{x:160,y:96,w:470,h:168,lh:84},txt:{x:80,y:352,w:760,h:924,lh:84}},TO_X=80;
 function rrect(x,X,Y,w,h,r){x.beginPath();x.moveTo(X+r,Y);x.arcTo(X+w,Y,X+w,Y+h,r);x.arcTo(X+w,Y+h,X,Y+h,r);x.arcTo(X,Y+h,X,Y,r);x.arcTo(X,Y,X+w,Y,r);x.closePath()}
 /* where a stamp can sit on the front: centre, size of the box it fits in, and its little tilt */
 const SPOTS=[{x:W-178,y:190,deg:4},{x:178,y:190,deg:-5},{x:W-178,y:H-200,deg:-3}],SB=230;
@@ -34,14 +34,14 @@ function back(){const x=cb.getContext('2d'),L=84,A=R.txt,B=R.to,ink='#6C2C25',on
  x.fillStyle='#fffdf0';x.fillRect(0,0,W,H);
  x.textBaseline='alphabetic';
  const rule=(y,g=A)=>{x.beginPath();x.moveTo(g.x,y);x.lineTo(g.x+g.w,y);x.stroke()};
- x.strokeStyle='#6C2C2545';x.lineWidth=3;x.setLineDash([]);for(let k=0;k<A.h/L;k++)rule(A.y+k*L+L-14);for(let k=0;k<3;k++)rule(B.y+k*L+L-14,B);
+ x.strokeStyle='#6C2C2545';x.lineWidth=3;x.setLineDash([]);for(let k=0;k<A.h/L;k++)rule(A.y+k*L+L-14);for(let k=0;k<2;k++)rule(B.y+k*L+L-14,{x:TO_X,w:B.x+B.w-TO_X});
  x.strokeStyle='#6C2C2599';x.lineWidth=4;x.setLineDash([12,10]);rule(B.y+B.h+50);x.setLineDash([]);if(st.stamps[0])stamp(x,st.stamps[0].i,752,150,180,-3);
  x.fillStyle=ink;x.font='500 46px "EB Garamond",Georgia,serif';const max=A.h/L;let y=A.y+L-22,cx=A.x,cy=y,n=0;
  if(!st.txt){x.globalAlpha=.35;x.fillText('dear you,',A.x,y);x.globalAlpha=1}
  for(const para of st.txt.split('\n')){let line='';for(const w of para.split(' ')){const t=line?line+' '+w:w;if(x.measureText(t).width>A.w&&line){if(n<max)x.fillText(line,A.x,y);y+=L;n++;line=w}else line=t}if(n<max)x.fillText(line,A.x,y);cx=A.x+x.measureText(line).width;cy=y;y+=L;n++}
  if(on('txt')){x.fillStyle='#EB5E3A';x.fillRect(cx+4,cy-36,3,46)}
- x.fillStyle=ink;if(!st.to)x.globalAlpha=.35;(st.to||'to:').split('\n').slice(0,3).forEach((l,i)=>x.fillText(l,B.x,B.y+L-22+i*L));x.globalAlpha=1;
- if(on('to')){const ls=st.to.split('\n').slice(0,3);x.fillStyle='#EB5E3A';x.fillRect(B.x+(st.to?x.measureText(ls[ls.length-1]).width:0)+5,B.y+L-22+(ls.length-1)*L-36,3,46)}
+ x.fillStyle=ink;x.globalAlpha=.6;x.fillText('To:',TO_X,B.y+L-22);x.globalAlpha=1;st.to.split('\n').slice(0,2).forEach((l,i)=>x.fillText(l,B.x,B.y+L-22+i*L));
+ if(on('to')){const ls=st.to.split('\n').slice(0,2);x.fillStyle='#EB5E3A';x.fillRect(B.x+(st.to?x.measureText(ls[ls.length-1]).width:0)+5,B.y+L-22+(ls.length-1)*L-36,3,46)}
  tb.needsUpdate=true}
 const tex=c=>{const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;t.anisotropy=8;return t},tfs=cfs.map(tex),tb=tex(cb);
 const stage=document.getElementById('stage'),canvas=document.getElementById('gl');
@@ -60,17 +60,17 @@ const cards=D.map((d,i)=>{const o=new THREE.Group(),f=new THREE.Group(),fm=face(
  fr.position.z=T/2+.001;bk.rotation.y=Math.PI;bk.position.z=-T/2-.001;f.add(fr,bk,new THREE.Mesh(edgeGeo,[none,edge]));s.position.set(.1,-.18,-.4);o.add(s,f);scene.add(o);return{o,f,s,fm,bm}});
 let gap=2.6;
 function size(){const w=stage.clientWidth,h=stage.clientHeight;if(!w||!h)return;r.setSize(w,h,false);cam.aspect=w/h;
- cam.position.z=Math.max(CH*1.14/(2*TAN),CW*1.25/(2*TAN*cam.aspect));cam.updateProjectionMatrix();
+ cam.position.z=focused?Math.max(CH*1.04/(2*TAN),CW*1.1/(2*TAN*cam.aspect)):Math.max(CH*1.14/(2*TAN),CW*1.25/(2*TAN*cam.aspect));cam.updateProjectionMatrix();
  // neighbours peek in from the edges on a phone, and sit a little apart on wider screens
  const hw=TAN*cam.position.z*cam.aspect;gap=Math.min(Math.max(CW*1.08,hw+CW*.24),CW*1.3)}
 const pxPer=()=>stage.clientHeight/(2*TAN*cam.position.z);
 addEventListener('resize',size);
-if(window.visualViewport){const vv=()=>{size();if(editing)place(editing)};visualViewport.addEventListener('resize',vv);visualViewport.addEventListener('scroll',vv)}
+if(window.visualViewport){const vv=()=>{fitKeyboard();size();if(editing)place(editing)};visualViewport.addEventListener('resize',vv);visualViewport.addEventListener('scroll',vv)}
 /* the carousel: pos glides toward target; st.d is the card in the middle */
 let ry=0,rx=0,vy=0,vx=0,drag=false,mode=null,px=0,py=0,hx=0,hy=0,thx=0,thy=0,pos=0,target=0,pos0=0,sv=0,lx=0,lt=0,hidden=false;const calm=matchMedia('(prefers-reduced-motion:reduce)').matches;
 canvas.addEventListener('pointerdown',e=>{e.preventDefault();vy=vx=0;drag=true;mode=null;px=dx0=lx=e.clientX;py=dy0=e.clientY;tt=lt=performance.now();pos0=pos;sv=0;canvas.setPointerCapture(e.pointerId)});
 canvas.addEventListener('pointermove',e=>{const b=canvas.getBoundingClientRect();if(!drag)canvas.style.cursor=hit(e.clientX,e.clientY)?'text':'';thx=((e.clientX-b.left)/b.width-.5);thy=((e.clientY-b.top)/b.height-.5);
- if(!drag)return;const dx=e.clientX-dx0,dy=e.clientY-dy0;
+ if(focused)thx=thy=0;if(!drag||focused)return;const dx=e.clientX-dx0,dy=e.clientY-dy0;
  // the first few pixels decide: sideways on the front browses cards, anything else spins the card
  if(!mode){if(Math.hypot(dx,dy)<8)return;mode=!onBack()&&Math.abs(dx)>Math.abs(dy)?'swipe':'spin';px=e.clientX;py=e.clientY;if(mode==='swipe'&&document.activeElement===ed)ed.blur()}
  if(mode==='swipe'){pos=pos0-dx/(gap*pxPer());const t=performance.now();sv=(lx-e.clientX)/(gap*pxPer())/Math.max(8,t-lt)*1000;lx=e.clientX;lt=t;return}
@@ -106,7 +106,7 @@ function tick(t){if(!writeOn){running=false;return}requestAnimationFrame(tick);
  hx+=(thx-hx)*.1;hy+=(thy-hy)*.1;lift+=((drag&&mode==='spin'?1:0)-lift)*.15;
  const turn=Math.abs(Math.sin(ry/2));
  cards.forEach((c,i)=>{const d=((i-pos)%N+N*1.5)%N-N/2,a=Math.abs(d),k=Math.min(a,1),fade=a>1.2?Math.max(0,(2-a)/.8):1,mid=i===st.d;
-  c.o.visible=fade>0&&!(mid&&hidden);
+  c.o.visible=fade>0&&!(mid&&hidden)&&(mid||!focused);
   // the middle card straightens up when it turns over, so the back reads level
   c.o.position.set(d*gap,mid?lift*.06:0,-k*.6);c.o.rotation.set(0,-d*.2,D[i].tilt*Math.PI/180*(mid?1-turn:1));c.o.scale.setScalar((1-.12*k)*fade*(mid?1+lift*.04:1));
   if(mid)c.f.rotation.set(rx+hy*.22*(1-k),ry+hx*.3*(1-k),0);else c.f.rotation.set(0,0,0);
@@ -122,19 +122,34 @@ const onBack=()=>Math.abs(Math.round(ry/Math.PI))%2==1;
 const hit=(cx,cy)=>{if(!settled()||!onBack())return;const bb=canvas.getBoundingClientRect(),X=cx-bb.left,Y=cy-bb.top;for(const k in R){const g=R[k],[a,b2]=scr(g.x,g.y),[c,d]=scr(g.x+g.w,g.y+g.h);if(X>=a&&X<=c&&Y>=b2&&Y<=d)return k}};
 function place(k){const g=R[k],[x0,y0]=scr(g.x,g.y),[x1,y1]=scr(g.x+g.w,g.y+g.h),s=(x1-x0)/g.w;
  Object.assign(ed.style,{display:'block',left:x0+'px',top:y0+'px',width:(x1-x0)+'px',height:(y1-y0)+'px',fontSize:Math.max(16,46*s)+'px',lineHeight:g.lh*s+'px'})}
-function edit(k){editing=k;ed.dataset.k=k;place(k);
- ed.value=st[k];ed.placeholder=k=='txt'?'dear you,':'to:';ed.maxLength=k=='txt'?360:60;
- ed.oninput=()=>{if(k=='to')ed.value=ed.value.split('\n').slice(0,3).join('\n');st[k]=ed.value;Store.save(k=='to'?{to:ed.value}:{message:ed.value});blink=true;back()};
+function edit(k,user){if(user)setFocus(true);editing=k;ed.dataset.k=k;place(k);
+ ed.value=st[k];ed.placeholder=k=='txt'?'dear you,':'';ed.maxLength=k=='txt'?400:60;
+ ed.oninput=()=>{if(k=='to')ed.value=ed.value.split('\n').slice(0,2).join('\n');if(!focused)setFocus(true);st[k]=ed.value;Store.save(k=='to'?{to:ed.value}:{message:ed.value});blink=true;back()};
  ed.focus();ed.setSelectionRange(ed.value.length,ed.value.length);blink=true;back()}
 ed.onblur=()=>{ed.style.display='none';editing=null;back()};ed.onkeydown=e=>{if(/^(Arrow|Home|End|Page)/.test(e.key))e.preventDefault()};
 /* a tap on a peeking neighbour brings it to the middle; on the front a tap flips; on the back it picks a field */
 function tap(cx,cy){if(!settled())return;const bb=canvas.getBoundingClientRect(),X=cx-bb.left,Y=cy-bb.top;
  if(!onBack()){const k=stampAt(cx,cy);if(k>=0)return peel((s,j)=>j===k);
   const xs=[[0,0],[W,0],[0,H],[W,H]].map(([u,v])=>scr(u,v)[0]);if(X<Math.min(...xs))return choose(Math.round(target)-1);if(X>Math.max(...xs))return choose(Math.round(target)+1);flipOver();return}
- for(const k in R){const g=R[k],[a,b2]=scr(g.x,g.y),[c,d]=scr(g.x+g.w,g.y+g.h);if(X>=a&&X<=c&&Y>=b2&&Y<=d)return edit(k)}}
+ for(const k in R){const g=R[k],[a,b2]=scr(g.x,g.y),[c,d]=scr(g.x+g.w,g.y+g.h);if(X>=a&&X<=c&&Y>=b2&&Y<=d)return edit(k,true)}}
 let running=false,writeOn=false,ready=false;
 function run(){if(!ready||!writeOn)return;size();if(!running){running=true;requestAnimationFrame(tick)}}
-function setWrite(v){writeOn=v;if(v)run();else if(document.activeElement===ed)ed.blur()}
+function setWrite(v){writeOn=v;if(v)run();else{if(document.activeElement===ed)ed.blur();setFocus(false,true)}}
+/* writing: the card lifts into a focused view, big and centred, everything else steps away; the small X (or Esc) puts it back.
+   The stage grows to fill the view, then a FLIP from the card's old spot on screen makes it look like the card itself grew */
+let focused=false;const wView=document.getElementById('v-write'),wClose=document.getElementById('wClose');
+const cardRect=()=>{const b=stage.getBoundingClientRect(),p=[[0,0],[W,0],[0,H],[W,H]].map(([u,v])=>scr(u,v)),xs=p.map(q=>q[0]),ys=p.map(q=>q[1]);return{x:b.left+Math.min(...xs),y:b.top+Math.min(...ys),w:Math.max(...xs)-Math.min(...xs)}};
+function setFocus(v,instant){if(v===focused)return;const was=ready&&!instant&&!calm?cardRect():null;
+ focused=v;wView.classList.toggle('focused',v);if(!v)stage.style.bottom='';fitKeyboard();size();hx=hy=thx=thy=0;
+ if(was){cam.updateMatrixWorld();const now=cardRect(),b=stage.getBoundingClientRect(),k=was.w/now.w;
+  stage.animate([{transformOrigin:'0 0',transform:`translate(${was.x-b.left-k*(now.x-b.left)}px,${was.y-b.top-k*(now.y-b.top)}px) scale(${k})`},{transformOrigin:'0 0',transform:'none'}],{duration:420,easing:'cubic-bezier(.2,.8,.2,1)'})}
+ if(editing)place(editing)}
+function closeFocus(){if(document.activeElement===ed)ed.blur();setFocus(false)}
+wClose.onclick=closeFocus;
+addEventListener('keydown',e=>{if(e.key==='Escape'&&focused){e.preventDefault();closeFocus()}});
+/* with the on-screen keyboard up, the focused card fits in what's left above it */
+function fitKeyboard(){const vv=window.visualViewport;if(!focused||!vv)return;const vr=wView.getBoundingClientRect(),top=vv.offsetTop+vv.height;
+ stage.style.bottom=top<innerHeight-60?Math.max(0,vr.bottom-top+12)+'px':''}
 function start(){Store.load().then(d=>{st.to=d.to||'';st.txt=d.message||'';st.d=D[d.design]?d.design:0;if(inkName(d.paper)&&inkName(d.ink)){st.paper=d.paper;st.ink=d.ink}// older drafts kept a single stamp + spot
  st.stamps=Array.isArray(d.stamps)?d.stamps.filter(s=>s&&STAMPS[s.i]&&SPOTS[s.spot]):[{i:STAMPS[d.stamp]?d.stamp:0,spot:SPOTS[d.spot]?d.spot:0}];pos=target=st.d;D.forEach((_,i)=>front(i));label();ready=true;back();run()})}
 /* the front face, texture px → screen px inside the stage */

@@ -15,7 +15,34 @@ addEventListener('hashchange',route);
 $$('.tab').forEach(t=>t.onclick=()=>{const g=t.dataset.go;location.hash=g==='home'&&t.getAttribute('aria-current')!=='page'?lastHome:g});
 // the write view has its own back, down by the colours
 const wBack=$('#wBack');if(wBack)wBack.onclick=()=>{location.hash='home'};
-const h=new Date().getHours();$('#greet').textContent=h<12?'good morning':h<18?'good afternoon':'good evening';
+const h=new Date().getHours(),part=h<12?'morning':h<18?'afternoon':'evening';
+$('#greet').textContent='Good '+part[0].toUpperCase()+part.slice(1);
+/* tap the greeting: the time of day pops up over it, a sun, a sun behind a cloud, or a moon, with a little burst of rays or stars */
+(function sky(){
+ const btn=$('#greet'),calm=matchMedia('(prefers-reduced-motion:reduce)');
+ const SUN='<circle cx="24" cy="24" r="9" fill="var(--red)"/><g stroke="var(--red)" stroke-width="3" stroke-linecap="round"><path d="M24 5v5M24 38v5M5 24h5M38 24h5M10.6 10.6l3.5 3.5M33.9 33.9l3.5 3.5M10.6 37.4l3.5-3.5M33.9 14.1l3.5-3.5"/></g>';
+ const ART={morning:SUN,
+  afternoon:'<g transform="translate(-4 -5)">'+SUN+'</g><path d="M17 40h20a6 6 0 0 0 0-12 8.5 8.5 0 0 0-16.4 1A5.5 5.5 0 0 0 17 40z" fill="var(--pill)" stroke="var(--tx)" stroke-width="2.6" stroke-linejoin="round"/>',
+  evening:'<path d="M29.5 8.5a15.5 15.5 0 1 0 10 25.5A13 13 0 0 1 29.5 8.5z" fill="var(--blue)" stroke="var(--tx)" stroke-width="2.6" stroke-linejoin="round"/><circle cx="25" cy="22" r="1.8" fill="var(--tx)" opacity=".35"/><circle cx="18" cy="30" r="2.6" fill="var(--tx)" opacity=".25"/>'};
+ const STAR='<path d="M6 0 7.4 4.6 12 6 7.4 7.4 6 12 4.6 7.4 0 6 4.6 4.6z" fill="var(--c)"/>',DOT='<circle cx="6" cy="6" r="3.2" fill="var(--c)"/>';
+ let fx=null;
+ btn.onclick=()=>{
+  if(fx)fx.remove();
+  fx=document.createElement('span');fx.className='sky';fx.setAttribute('aria-hidden','true');
+  const art=document.createElement('span');art.className='sky-art';art.innerHTML=`<svg viewBox="0 0 48 48">${ART[part]}</svg>`;fx.append(art);
+  btn.parentNode.append(fx);const me=fx,end=()=>{me.remove();if(fx===me)fx=null};
+  if(calm.matches){art.animate([{opacity:0},{opacity:1,offset:.2},{opacity:1,offset:.75},{opacity:0}],{duration:1600,fill:'forwards'}).finished.then(end,end);return}
+  art.animate([{transform:'translateY(14px) scale(.2) rotate(-25deg)',opacity:0},{transform:'translateY(-6px) scale(1.12) rotate(6deg)',opacity:1,offset:.22},
+   {transform:'translateY(0) scale(1) rotate(0)',opacity:1,offset:.34},{transform:'translateY(-4px) scale(1) rotate(0)',opacity:1,offset:.78},{transform:'translateY(-14px) scale(.9)',opacity:0}],
+   {duration:1700,easing:'ease-out',fill:'forwards'}).finished.then(end,end);
+  // the burst: stars at night, warm dots by day, flung out from behind it
+  const n=7;for(let i=0;i<n;i++){const b=document.createElement('span');b.className='sky-bit';
+   b.style.setProperty('--c',i%2?'var(--red)':part==='evening'?'var(--blue)':'var(--tx)');
+   b.innerHTML=`<svg viewBox="0 0 12 12">${part==='evening'?STAR:DOT}</svg>`;fx.append(b);
+   const a=-Math.PI*(.08+.84*i/(n-1))+(Math.random()-.5)*.25,d=46+Math.random()*22,x=Math.cos(a)*d,y=Math.sin(a)*d,s=.6+Math.random()*.6;
+   b.animate([{transform:'translate(0,0) scale(0)',opacity:1},{transform:`translate(${x*.8}px,${y*.8}px) scale(${s})`,opacity:1,offset:.45},{transform:`translate(${x}px,${y+8}px) scale(${s*.6}) rotate(${a>-1.57?90:-90}deg)`,opacity:0}],
+    {duration:900+Math.random()*250,delay:120,easing:'cubic-bezier(.2,.8,.3,1)',fill:'both'})}};
+})();
 $$('[data-box]').forEach(b=>b.onclick=()=>{$$('[data-box]').forEach(x=>x.setAttribute('aria-pressed',x===b));$('#emptyMsg').textContent=`no ${b.dataset.box} postcards yet.`});
 function setTheme(v,save){const r=document.documentElement;v==='system'?r.removeAttribute('data-theme'):r.setAttribute('data-theme',v);
  $$('[data-theme-set]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.themeSet===v));if(save)try{localStorage.setItem('snaily-theme',v)}catch(e){}}

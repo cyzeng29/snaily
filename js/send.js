@@ -5,7 +5,7 @@
    through the slot, and the envelope drops down between back and next on the board,
    where the snail ducks inside and it opens up, a small + popping out beside it. */
 (function(){
- const env=$('#env'),view=$('#v-write'),bar=view.querySelector('.bar'),cname=$('#cname'),bEnv=$('#bEnv'),bAdd=$('#bAdd');
+ const env=$('#env'),view=$('#v-write'),bar=view.querySelector('.bar'),cname=$('#cname'),flipB=$('#flip'),bEnv=$('#bEnv'),bAdd=$('#bAdd');
  /* the envelope's body in images/envelope.png, as fractions of the image */
  const BODY={l:.03,t:.575,r:.97,b:.975};
  /* and the open one's (images/envelope-open.png), bottom edge and width */
@@ -28,7 +28,7 @@
   Object.assign(mail.style,{left:shot.left-vr.left+'px',top:shot.top-vr.top+'px',width:shot.width+'px',height:shot.height+'px'});
   view.append(mail);hideCard(true);view.style.overflow='hidden';
   // the controls step aside and the snail pops up with its envelope
-  [bar,cname].forEach(el=>anim(el,[{opacity:1,transform:'none'},{opacity:0,transform:'translateY(14px)'}],{duration:200,easing:'ease-in'}));
+  [bar,cname,flipB].forEach(el=>anim(el,[{opacity:1,transform:'none'},{opacity:0,transform:'translateY(14px)'}],{duration:200,easing:'ease-in'}));
   const lift=anim(mail,[{transform:'none'},{transform:'translateY(-14px) scale(1.03)'}],{duration:220,easing:'ease-out'});
   env.classList.add('on');
   await done(anim(env,[{transform:'translateY(50px) scale(.4)',opacity:0},{transform:'translateY(-10px) scale(1.06)',opacity:1,offset:.7},{transform:'none',opacity:1}],{duration:420,easing:'cubic-bezier(.3,1.3,.5,1)'}));
@@ -70,6 +70,6 @@
   finish()}
 
  // undo the flight's leftovers so the write view is ready if you come back
- function finish(){setTimeout(()=>{[env,bar,cname,view,$('#gl')].forEach(e=>e.getAnimations().forEach(a=>a.cancel()));view.style.overflow='';env.classList.remove('on');bEnv.style.visibility=bAdd.style.visibility='';hideCard(false);busy=false},50)}
+ function finish(){setTimeout(()=>{[env,bar,cname,flipB,view,$('#gl')].forEach(e=>e.getAnimations().forEach(a=>a.cancel()));view.style.overflow='';env.classList.remove('on');bEnv.style.visibility=bAdd.style.visibility='';hideCard(false);busy=false},50)}
  $('#next').onclick=send;
 })();

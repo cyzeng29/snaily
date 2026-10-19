@@ -1,15 +1,16 @@
 /* Open Sauce Sans 400: Fontsource's woff2 for this weight is corrupt (no wOF2 header), so use its woff instead */
 @font-face{font-family:'Open Sauce Sans';font-style:normal;font-weight:400;font-display:swap;src:url(https://cdn.jsdelivr.net/npm/@fontsource/open-sauce-sans@5.3.0/files/open-sauce-sans-latin-400-normal.woff) format('woff')}
 :root{--bg:#F2EDBD;--tx:#6C2C25;--red:#EB5E3A;--blue:#7CA2E0;--line:rgba(108,44,37,.14);--glass:rgba(255,255,255,.38);--glass-hi:rgba(255,255,255,.72);--ease:cubic-bezier(.2,.8,.2,1);box-sizing:border-box;--nav-space:calc(env(safe-area-inset-bottom,0px) + 86px);
- --snail:url(/images/snail.png);--stamp:url(/images/stamp.png);--stamp-empty:url(/images/stamp-empty.png?v=2);
+ --top-gap:clamp(28px,2vh + 24px,56px);
+ --snail:url(/images/snail.svg);--stamp:url(/images/stamp.svg);--stamp-empty:url(/images/stamp-empty.svg);
  --envelope:url(/images/envelope.png);--envelope-open:url(/images/envelope-open.png);
  --pill:#fdfcf7;--pill-sh:43,16,12;--soft:rgba(43,16,12,.06);--sel:#6C2C25;--tile:#E9E2AE}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#6C2C25;--tx:#F2EDBD;--line:rgba(242,237,189,.16);--glass:rgba(242,237,189,.10);--glass-hi:rgba(242,237,189,.22);
- --snail:url(/images/snail-dark.png);--stamp:url(/images/stamp-dark.png);--stamp-empty:url(/images/stamp-empty-dark.png?v=2);
+ --snail:url(/images/snail-dark.svg);--stamp:url(/images/stamp-dark.svg);--stamp-empty:url(/images/stamp-empty-dark.svg);
  --envelope:url(/images/envelope-dark.png);--envelope-open:url(/images/envelope-open-dark.png);
  --pill:#7e382f;--pill-sh:20,6,4;--soft:rgba(255,255,255,.08);--sel:#B4584C;--tile:#7a352d}}
 :root[data-theme="dark"]{--bg:#6C2C25;--tx:#F2EDBD;--line:rgba(242,237,189,.16);--glass:rgba(242,237,189,.10);--glass-hi:rgba(242,237,189,.22);
- --snail:url(/images/snail-dark.png);--stamp:url(/images/stamp-dark.png);--stamp-empty:url(/images/stamp-empty-dark.png?v=2);
+ --snail:url(/images/snail-dark.svg);--stamp:url(/images/stamp-dark.svg);--stamp-empty:url(/images/stamp-empty-dark.svg);
  --envelope:url(/images/envelope-dark.png);--envelope-open:url(/images/envelope-open-dark.png);
  --pill:#7e382f;--pill-sh:20,6,4;--soft:rgba(255,255,255,.08);--sel:#B4584C;--tile:#7a352d}
 *,*::before,*::after{box-sizing:inherit}
@@ -18,7 +19,7 @@ body{margin:0;background:var(--bg);color:var(--tx);font-family:'Open Sauce Sans'
 button{touch-action:manipulation;font:inherit;color:inherit}
 
 /* header */
-.top{display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 6px;min-height:56px}
+.top{display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top,0px) + 14px) 20px 6px;min-height:60px}
 .brand{display:flex;align-items:center;gap:8px;color:var(--tx);text-decoration:none;border-radius:12px}
 #logo{width:49px;height:34px;background:var(--snail) center/contain no-repeat}
 .word{font-weight:600;font-size:24px;letter-spacing:-.01em}
@@ -28,7 +29,7 @@ body:not([data-view="home"]) main{padding-top:env(safe-area-inset-top,0px)}
 
 /* views */
 main{flex:1;min-height:0;position:relative}
-.view{position:absolute;inset:0 0 var(--nav-space);display:none;flex-direction:column;overflow:auto;padding:12px 20px 24px}
+.view{position:absolute;inset:0 0 var(--nav-space);display:none;flex-direction:column;overflow:auto;padding:var(--top-gap) 20px 24px}
 .view.on{display:flex;animation:viewIn .28s var(--ease)}
 @keyframes viewIn{from{opacity:0;transform:translateY(6px)}}
 .view h2{font-weight:600;font-size:28px;margin:4px 0 16px}
@@ -37,6 +38,17 @@ main{flex:1;min-height:0;position:relative}
 /* ===== WELCOME (home) — kept minimal on purpose; add details here ===== */
 #v-home{align-items:center;justify-content:center;text-align:center;gap:24px}
 .greet{font-weight:600;font-size:32px;margin:0}
+/* the greeting is a button: tap it and the sky pops up over it */
+.greet{position:relative}
+.greet-btn{padding:0 8px;border:0;border-radius:14px;background:none;font:inherit;letter-spacing:inherit;color:inherit;cursor:pointer;transition:transform .25s cubic-bezier(.3,1.35,.5,1)}
+@media (hover:hover){.greet-btn:hover{transform:rotate(-2deg) scale(1.03)}}
+.greet-btn:active{transform:scale(.96)}
+.greet-btn:focus-visible{outline:3px solid var(--blue);outline-offset:4px}
+.sky{position:absolute;left:50%;bottom:100%;width:0;height:0;pointer-events:none}
+.sky-art{position:absolute;left:-30px;bottom:-4px;width:60px;height:60px;filter:drop-shadow(0 6px 8px rgba(var(--pill-sh),.18))}
+.sky-bit{position:absolute;left:-6px;bottom:20px;width:12px;height:12px}
+.sky svg{display:block;width:100%;height:100%;overflow:visible}
+@media (prefers-reduced-motion:reduce){.greet-btn{transition:none}.greet-btn:hover{transform:none}}
 .primary{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 28px;border-radius:99px;background:var(--tx);color:var(--bg);text-decoration:none;font-weight:600;font-size:18px;transition:transform .18s var(--ease),box-shadow .18s var(--ease)}
 @media (hover:hover){.primary:hover{transform:translateY(-2px);box-shadow:0 6px 14px rgba(60,20,15,.25)}}
 .primary:active{transform:scale(.96)}
@@ -53,7 +65,7 @@ main{flex:1;min-height:0;position:relative}
 canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:grab}canvas:active{cursor:grabbing}
 .bar{display:flex;flex-direction:column;align-items:center;gap:8px;padding:2px 16px 12px}
 /* craft header (after Lost Post): centred title with a randomize link under it */
-.craft-head{display:flex;flex-direction:column;align-items:center;padding:16px 16px 0}
+.craft-head{display:flex;flex-direction:column;align-items:center;padding:calc(var(--top-gap) + 8px) 16px 6px}
 .craft-head h2{margin:0;font-size:24px;letter-spacing:-.01em;text-align:center}
 .shuffle{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 12px;border:0;background:none;font-size:16px;cursor:pointer;border-radius:99px}
 .shuffle span{opacity:.5}
@@ -130,20 +142,22 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor
 .empty{margin:auto;text-align:center;padding-bottom:40px}
 .field{border:0;padding:0;margin:0 0 28px}.field legend{font-weight:600;font-size:18px;margin-bottom:10px;padding:0}
 
-/* bottom nav: floating liquid-glass pill (Instagram-style); content scrolls under it, a lighter capsule slides to the current tab */
+/* bottom nav: a clear glass pill (Instagram-style) over the page colour; content scrolls under it, a soft capsule slides to the current tab */
 .tabs{--n:3;--slot:78px;--i:1;position:fixed;z-index:40;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);transform:translateX(-50%);display:flex;padding:6px;border-radius:99px;isolation:isolate;
- background:rgba(30,20,18,.72);-webkit-backdrop-filter:blur(22px) saturate(1.8);backdrop-filter:blur(22px) saturate(1.8);
- box-shadow:inset 0 0 0 1px rgba(255,255,255,.12),inset 0 1px 0 rgba(255,255,255,.22),inset 0 -1px 0 rgba(0,0,0,.25),0 0 0 .5px rgba(0,0,0,.35),0 12px 32px -8px rgba(20,8,6,.5)}
+ background:color-mix(in srgb,var(--bg) 42%,transparent);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
+ box-shadow:inset 0 0 0 1px var(--line),inset 0 1px 0 var(--glass-hi),0 10px 28px -14px rgba(var(--pill-sh),.4)}
 .tabs::before{content:'';position:absolute;z-index:-1;top:6px;bottom:6px;left:6px;width:var(--slot);border-radius:99px;
- background:rgba(255,255,255,.16);box-shadow:inset 0 1px 0 rgba(255,255,255,.14);transform:translateX(calc(var(--i) * var(--slot)));transition:transform .42s cubic-bezier(.3,1.35,.5,1)}
+ background:color-mix(in srgb,var(--tx) 9%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--tx) 6%,transparent);transform:translateX(calc(var(--i) * var(--slot)));transition:transform .42s cubic-bezier(.3,1.35,.5,1)}
 .tabs:has(.t-gallery[aria-current]){--i:0}.tabs:has(.t-home[aria-current]){--i:1}.tabs:has(.t-settings[aria-current]){--i:2}
 .tabs:not(:has([aria-current]))::before{opacity:0}
-.tab{width:var(--slot);height:52px;border:0;background:transparent;border-radius:99px;cursor:pointer;display:grid;place-items:center;padding:0}
-.tab i{display:block;width:36px;height:36px;background:var(--ic) center/contain no-repeat;opacity:.92;transition:transform .2s var(--ease),opacity .2s var(--ease)}
-.tab[aria-current="page"] i{opacity:1}
-@media (hover:hover){.tab:hover i{opacity:1;transform:translateY(-2px) rotate(-3deg)}}
-.tab:active i{transform:scale(.86);transition-duration:.08s}
-.t-gallery{--ic:url(/images/nav-gallery-glass.png)}.t-home{--ic:url(/images/nav-home-glass.png)}.t-settings{--ic:url(/images/nav-settings-glass.png)}
+.tab{width:var(--slot);height:52px;border:0;background:transparent;border-radius:99px;cursor:pointer;display:grid;place-items:center;padding:0;color:var(--tx)}
+.tab svg{display:block;width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;opacity:.6;transition:transform .2s var(--ease),opacity .2s var(--ease)}
+.tab[aria-current="page"] svg{opacity:1;stroke-width:2.1}
+.tab .eye{fill:currentColor;stroke:none}
+@media (hover:hover){.tab:hover svg{opacity:1;transform:translateY(-2px) rotate(-4deg)}}
+.tab:active svg{transform:scale(.86);transition-duration:.08s}
+/* no backdrop blur: fall back to a solid pill so the icons stay legible */
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.tabs{background:var(--bg)}}
 
 .btn:focus-visible,.tab:focus-visible,.brand:focus-visible,.back:focus-visible,.primary:focus-visible,.seg button:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
 
@@ -172,8 +186,8 @@ body.reveal .tabs{animation:navIn .5s var(--ease) both}
 body.reveal .view.on>*{animation:rise .5s var(--ease) both .08s}
 @keyframes wordIn{from{opacity:0;transform:translateX(-10px)}}
 @keyframes rise{from{opacity:0;transform:translateY(14px)}}
-@media (prefers-reduced-motion:reduce){.view.on{animation:none}.tab i,.primary{transition:opacity .2s}
- .tab:hover i,.tab:active i{transform:none!important}.tabs::before{transition:none}
+@media (prefers-reduced-motion:reduce){.view.on{animation:none}.tab svg,.primary{transition:opacity .2s}
+ .tab:hover svg,.tab:active svg{transform:none!important}.tabs::before{transition:none}
  body.reveal .word,body.reveal .tabs,body.reveal .view.on>*{animation:fadeOnly .3s both}}
 @keyframes fadeOnly{from{opacity:0}}
 
@@ -182,15 +196,19 @@ body.reveal .view.on>*{animation:rise .5s var(--ease) both .08s}
 .btn.solid:disabled{opacity:.4;cursor:default}
 @media (hover:hover){.btn:not(:disabled):hover{transform:translateY(-2px)}.btn{transition:transform .18s var(--ease)}}
 .btn:not(:disabled):active{transform:scale(.96)}
-.env{position:absolute;z-index:4;left:50%;bottom:20px;width:120px;height:162px;margin-left:-60px;background:var(--envelope) center bottom/contain no-repeat;pointer-events:none;visibility:hidden;transform-origin:50% 100%}
+.env{position:absolute;z-index:4;left:50%;bottom:20px;width:150px;height:203px;margin-left:-75px;background:var(--envelope) center bottom/contain no-repeat;pointer-events:none;visibility:hidden;transform-origin:50% 100%}
 .env.on{visibility:visible}
 /* the envelope on its way from the write view down to the photo board */
 .env-fly{position:fixed;z-index:65;background:var(--envelope) center bottom/contain no-repeat;transform-origin:0 0;pointer-events:none}
 /* on the board it opens up and waits between back and next, a small + beside it */
 /* three columns so the envelope, + and trash sit dead centre whatever the widths of back and next */
-.board-foot{align-self:center;padding-top:4px;display:grid;grid-template-columns:1fr auto 1fr}
+.board-foot{align-self:center;padding-top:4px;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}
 .board-foot>:first-child{justify-self:start}.board-foot>:last-child{justify-self:end}
-.bmid{position:relative;display:flex;align-items:flex-end;gap:10px}
+.bmid{position:relative;display:grid;grid-template-columns:1fr auto 1fr;align-items:end;gap:10px}
+/* the + sits dead centre: the envelope on its left, the trash on its right */
+.bmid .benv{justify-self:end}.bmid .btrash{justify-self:start}
+/* an empty board has one +, the big one in the middle */
+#v-board.empty .badd{visibility:hidden}
 .benv{position:relative;z-index:2;flex:none;width:58px;height:57px;padding:0;border:0;cursor:pointer;background:var(--envelope-open) center bottom/contain no-repeat;transform-origin:50% 100%;transition:transform .3s cubic-bezier(.3,1.35,.5,1)}
 .benv:focus-visible{outline:3px solid var(--blue);outline-offset:3px;border-radius:8px}
 @media (hover:hover){.benv:hover{transform:scale(1.06)}}
@@ -210,25 +228,30 @@ body.reveal .view.on>*{animation:rise .5s var(--ease) both .08s}
 @media (hover:hover){.bpeek.open .pc:hover{filter:brightness(1.04)}}
 @media (prefers-reduced-motion:reduce){.pc,.benv{transition:opacity .2s}}
 
-.badd{flex:none;width:40px;height:40px;margin-bottom:2px;display:grid;place-items:center;padding:0;border:2.2px solid var(--tx);border-radius:50%;background:transparent;color:var(--tx);cursor:pointer;transition:transform .18s var(--ease),opacity .2s}
-.badd svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
+.badd{flex:none;width:48px;height:48px;margin-bottom:2px;display:grid;place-items:center;padding:0;border:2.2px solid var(--tx);border-radius:50%;background:transparent;color:var(--tx);cursor:pointer;transition:transform .18s var(--ease),opacity .2s}
+.badd svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
 @media (hover:hover){.badd:hover{transform:rotate(90deg)}}
 .badd:active{transform:scale(.9)}
 .badd:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
 .badd:disabled{opacity:.3;cursor:default;transform:none}
 /* trash: always beside the +; it perks up while a photo is dragged and fills red when the photo is over it */
-.btrash{position:relative;z-index:120;flex:none;width:40px;height:40px;margin-bottom:2px;display:grid;place-items:center;border-radius:50%;border:2.2px solid var(--tx);color:var(--tx);background:var(--bg);opacity:.55;transition:transform .3s cubic-bezier(.3,1.35,.5,1),opacity .2s,background-color .15s,color .15s,border-color .15s}
-.btrash svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-body.dragging .btrash{opacity:1;transform:scale(1.12);border-color:var(--red);color:var(--red)}
-body.dragging .btrash.hot{transform:scale(1.3);background:var(--red);border-color:var(--red);color:#fffdf4}
+/* trash: a bare can beside the +. While a photo is dragged it wakes up and its lid lifts; over it, the lid swings open and it turns red */
+.btrash{position:relative;z-index:120;flex:none;width:40px;height:44px;display:grid;place-items:center;color:var(--tx);opacity:.45;transition:transform .3s cubic-bezier(.3,1.35,.5,1),opacity .2s,color .15s,filter .2s}
+.btrash svg{width:30px;height:30px;overflow:visible;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.btrash .lid{transform-box:fill-box;transform-origin:0 100%;transition:transform .3s cubic-bezier(.3,1.35,.5,1)}
+body.dragging .btrash{opacity:1;transform:scale(1.15)}
+body.dragging .btrash .lid{transform:translateY(-1.5px) rotate(-14deg)}
+body.dragging .btrash.hot{transform:scale(1.4) rotate(-4deg);color:var(--red);filter:drop-shadow(0 4px 8px rgba(235,94,58,.45))}
+body.dragging .btrash.hot .lid{transform:translate(-1px,-3px) rotate(-38deg)}
+@media (prefers-reduced-motion:reduce){.btrash,.btrash .lid{transition:opacity .2s,color .15s}body.dragging .btrash,body.dragging .btrash.hot,body.dragging .btrash .lid,body.dragging .btrash.hot .lid{transform:none}}
 .ph.doomed{opacity:.55}
 #v-board{overflow:hidden}
 .act:disabled{opacity:.35;cursor:default;transform:none}
 .mail{position:absolute;z-index:3;left:0;top:0;transform-origin:50% 50%;pointer-events:none;box-shadow:0 10px 24px -8px rgba(60,20,15,.45);border-radius:7.4%/5%}
 
 /* ===== photo board ===== */
-#v-board{padding:4px 16px 12px;gap:8px}
-.board-head{display:flex;justify-content:center;padding-top:4px}
+#v-board{padding:var(--top-gap) 16px 12px;gap:8px}
+.board-head{display:flex;justify-content:center}
 /* layout pill: frosted glass, a lit top edge, and a thumb that slides under the pick */
 .lay{--w:64px;position:relative;display:flex;padding:4px;border-radius:99px;isolation:isolate;
  background:var(--glass);-webkit-backdrop-filter:blur(18px) saturate(1.6);backdrop-filter:blur(18px) saturate(1.6);
@@ -242,13 +265,17 @@ body.dragging .btrash.hot{transform:scale(1.3);background:var(--red);border-colo
 .lay[data-on="collage"] .lay-thumb{transform:translateX(var(--w))}
 .board{flex:1;min-height:0;position:relative;touch-action:none}
 /* print-style frame: warm paper mat, hairline ink edge, a lit top edge and a two-layer shadow (contact + ambient) */
-.ph{--mat:7px;--strip:24px;position:absolute;padding:0;border:0;cursor:grab;border-radius:2px;touch-action:none;background:linear-gradient(168deg,#fffdf4 0%,#fbf6e6 55%,#f3ecd5 100%);box-shadow:0 0 0 1px rgba(108,44,37,.13),inset 0 1px 0 rgba(255,255,255,.85),0 1px 1px rgba(43,16,12,.10),0 3px 6px -2px rgba(43,16,12,.16),0 16px 28px -14px rgba(43,16,12,.42);transition:box-shadow .25s var(--ease)}
+.ph{--mat:7px;--strip:24px;position:absolute;transition:box-shadow .25s var(--ease),translate .3s cubic-bezier(.3,1.35,.5,1),rotate .3s cubic-bezier(.3,1.35,.5,1),scale .3s cubic-bezier(.3,1.35,.5,1);padding:0;border:0;cursor:grab;border-radius:2px;touch-action:none;background:linear-gradient(168deg,#fffdf4 0%,#fbf6e6 55%,#f3ecd5 100%);box-shadow:0 0 0 1px rgba(108,44,37,.13),inset 0 1px 0 rgba(255,255,255,.85),0 1px 1px rgba(43,16,12,.10),0 3px 6px -2px rgba(43,16,12,.16),0 16px 28px -14px rgba(43,16,12,.42);transition:box-shadow .25s var(--ease)}
 .ph img{position:absolute;top:var(--mat);left:var(--mat);width:calc(100% - 2*var(--mat));height:calc(100% - var(--mat) - var(--strip));object-fit:cover;border-radius:1px;pointer-events:none;-webkit-user-drag:none}
 /* the photo sits slightly into the mat: a hairline plus a soft inner falloff */
 .ph::after{content:'';position:absolute;inset:var(--mat) var(--mat) var(--strip);border-radius:1px;pointer-events:none;box-shadow:inset 0 0 0 1px rgba(43,16,12,.10),inset 0 1px 10px rgba(43,16,12,.12)}
 /* a strip of tape in the brand colours, torn ends, tilted against the photo */
 .ph::before{content:'';position:absolute;z-index:2;top:-9px;left:50%;width:min(42%,72px);height:18px;margin-left:min(-21%,-36px);background:var(--tape,#EB5E3A);opacity:.86;transform:rotate(var(--tr,-4deg));clip-path:polygon(0 8%,6% 0,12% 10%,18% 0,24% 6%,76% 4%,82% 0,88% 9%,94% 0,100% 10%,100% 92%,94% 100%,88% 90%,82% 100%,76% 94%,24% 96%,18% 100%,12% 90%,6% 100%,0 92%);box-shadow:0 1px 2px rgba(43,16,12,.18);pointer-events:none}
 .ph.drag{cursor:grabbing;box-shadow:0 0 0 1px rgba(108,44,37,.13),inset 0 1px 0 rgba(255,255,255,.85),0 4px 8px -2px rgba(43,16,12,.18),0 30px 44px -18px rgba(43,16,12,.55)}
+/* photos can be opened: a hover (or keyboard focus) lifts one a little and tips it */
+@media (hover:hover){.ph:not(.drag):not(.packing):hover{translate:0 -5px;rotate:-1.5deg;scale:1.03}}
+.ph:not(.drag):not(.packing):focus-visible{translate:0 -5px;rotate:-1.5deg;scale:1.03}
+@media (prefers-reduced-motion:reduce){.ph{transition:box-shadow .25s}.ph:hover,.ph:focus-visible{translate:none!important;rotate:none!important;scale:none!important}}
 @media (hover:hover){.ph:not(.drag):hover{box-shadow:0 0 0 1px rgba(108,44,37,.16),inset 0 1px 0 rgba(255,255,255,.85),0 2px 3px rgba(43,16,12,.12),0 6px 12px -4px rgba(43,16,12,.18),0 24px 36px -16px rgba(43,16,12,.48)}}
 .ph:focus-visible{outline:3px solid var(--blue);outline-offset:4px}
 /* grid: square to the page, no tape, nothing to drag */
@@ -257,7 +284,7 @@ body.dragging .btrash.hot{transform:scale(1.3);background:var(--red);border-colo
 /* marker ink over the photo, cropped the same way as the photo */
 .ph-ink{position:absolute;top:var(--mat);left:var(--mat);width:calc(100% - 2*var(--mat));height:calc(100% - var(--mat) - var(--strip));pointer-events:none}
 /* the caption written on the polaroid strip, one line */
-.ph-cap{position:absolute;left:var(--mat);right:var(--mat);bottom:0;height:var(--strip);padding:0 2px;color:#6C2C25;font:400 var(--cap,12px)/var(--strip) 'Open Sauce Sans',system-ui,sans-serif;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+.ph-cap{position:absolute;left:var(--mat);right:var(--mat);bottom:0;height:var(--strip);padding:calc((var(--strip) - var(--cap-n,1) * var(--cap-lh,var(--strip))) / 2) 2px 0;color:#6C2C25;font:400 var(--cap,12px)/var(--cap-lh,var(--strip)) 'Open Sauce Sans',system-ui,sans-serif;text-align:center;overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;pointer-events:none}
 .board-empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center}
 .board-empty .big{border:0;padding:8px;border-radius:20px;background:transparent;color:var(--tx);font:600 20px 'Open Sauce Sans',system-ui,sans-serif;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:14px}
 .board-empty .big i{width:104px;height:104px;border-radius:50%;border:2.5px solid var(--tx);display:grid;place-items:center;transition:transform .18s var(--ease)}
@@ -273,12 +300,12 @@ body.dragging .btrash.hot{transform:scale(1.3);background:var(--red);border-colo
 body:has(.focus:not([hidden])) .tabs{opacity:0;pointer-events:none}
 .scrim{position:absolute;inset:0;background:rgba(43,16,12,.62)}
 /* the body spans the screen but lets taps through to the scrim; only its pieces catch them */
-.f-body{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;padding:calc(env(safe-area-inset-top,0px) + 24px) 16px 206px;pointer-events:none}
+.f-body{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;padding:calc(env(safe-area-inset-top,0px) + 64px) 16px 206px;pointer-events:none}
 .f-body>*{pointer-events:auto}
 .f-body:focus{outline:0}
-.f-card{margin:auto;display:flex;flex-direction:column;padding:12px 12px 0;border-radius:3px;transform-origin:50% 50%;background:linear-gradient(168deg,#fffdf4 0%,#fbf6e6 55%,#f3ecd5 100%);
+.f-card{--mat:12px;--strip:72px;--cap:24px;--cap-lh:28px;--cap-n:1;margin:auto;display:flex;flex-direction:column;padding:var(--mat) var(--mat) 0;border-radius:3px;transform-origin:50% 50%;background:linear-gradient(168deg,#fffdf4 0%,#fbf6e6 55%,#f3ecd5 100%);
  box-shadow:0 0 0 1px rgba(108,44,37,.14),inset 0 1px 0 rgba(255,255,255,.9),0 2px 4px rgba(0,0,0,.12),0 30px 60px -20px rgba(0,0,0,.6)}
-.f-photo{display:block;width:auto;height:auto;max-width:min(calc(100vw - 56px),396px);max-height:calc(100vh - 360px);max-height:calc(100dvh - 360px);border-radius:1px;box-shadow:inset 0 0 0 1px rgba(43,16,12,.1)}
+.f-photo{display:block;width:auto;height:auto;max-width:min(calc(100vw - 56px),396px);max-height:calc(100vh - 420px);max-height:calc(100dvh - 420px);border-radius:1px;box-shadow:inset 0 0 0 1px rgba(43,16,12,.1)}
 /* the drawing layer sits exactly on the photo; it only takes touches while the marker is up */
 .f-pic{position:relative}
 .f-ink{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;touch-action:none}
@@ -300,8 +327,8 @@ body:has(.focus:not([hidden])) .tabs{opacity:0;pointer-events:none}
 .ink-sep{width:1px;height:22px;margin:0 3px;background:rgba(255,255,255,.18)}
 @media (prefers-reduced-motion:reduce){.ink-opts{transition:opacity .2s}}
 /* the strip is as wide as the photo: a zero-width textarea can't stretch the card */
-.f-strip{padding:10px 2px 14px;cursor:text}
-.f-strip textarea{display:block;width:0;min-width:100%;border:0;outline:0;resize:none;background:transparent;color:#6C2C25;font:400 17px/1.35 'Open Sauce Sans',system-ui,sans-serif;text-align:center;-webkit-user-select:text;user-select:text;padding:0}
+.f-strip{height:var(--strip);display:flex;align-items:center;padding:0 2px;cursor:text}
+.f-strip textarea{display:block;width:0;min-width:100%;height:calc(var(--cap-n) * var(--cap-lh));border:0;outline:0;resize:none;overflow:hidden;background:transparent;color:#6C2C25;font:400 var(--cap)/var(--cap-lh) 'Open Sauce Sans',system-ui,sans-serif;text-align:center;-webkit-user-select:text;user-select:text;padding:0}
 .f-strip textarea::placeholder{color:#6C2C25;opacity:.35}
 .f-strip:focus-within{box-shadow:inset 0 -2px 0 rgba(124,162,224,.8)}
 /* tools: illustrated objects half below the screen edge over a soft glow; the picked one springs up, the other sinks */
@@ -359,7 +386,7 @@ body:has(.focus:not([hidden])) .tabs{opacity:0;pointer-events:none}
 body.viewing{--nav-space:env(safe-area-inset-bottom,0px)}
 body.viewing .tabs{display:none}
 #v-open{padding:0}
-.open-from{margin:22px 16px 0;text-align:center;font:400 30px/1.15 'Instrument Serif',Georgia,serif}
+.open-from{margin:var(--top-gap) 16px 0;text-align:center;font:400 30px/1.15 'Instrument Serif',Georgia,serif}
 .open-msg{display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:0 28px;text-align:center}
 .open-msg h2{margin:12px 0 4px}
 .open-msg p{margin:0;max-width:320px}
@@ -371,3 +398,30 @@ body.viewing .tabs{display:none}
 #v-open:not([data-state="card"]) .acts{justify-content:center}
 a.act{text-decoration:none}
 @media (prefers-reduced-motion:reduce){.open-snail{animation:none}}
+
+/* ===== focused writing: the card fills the view, everything else steps aside, a small X in the corner closes it ===== */
+/* the small X that closes a focused view (writing, a photo, reorder, send) */
+.close-x{position:absolute;z-index:7;top:calc(var(--top-gap) - 14px);right:14px;width:40px;height:40px;padding:0;border:0;border-radius:50%;display:grid;place-items:center;cursor:pointer;color:var(--tx);
+ background:var(--glass);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:inset 0 0 0 1px var(--line);transition:opacity .2s,transform .3s cubic-bezier(.3,1.35,.5,1)}
+.close-x svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;transition:transform .3s cubic-bezier(.3,1.35,.5,1)}
+.close-x:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+@media (hover:hover){.close-x:hover svg{transform:rotate(90deg)}}
+.close-x:active{transform:scale(.9)}
+#wClose{opacity:0;visibility:hidden;transform:scale(.6) rotate(-90deg);transition:opacity .2s,transform .3s cubic-bezier(.3,1.35,.5,1),visibility 0s .3s}
+#v-write.focused #wClose{opacity:1;visibility:visible;transform:none;transition:opacity .2s,transform .3s cubic-bezier(.3,1.35,.5,1)}
+/* over the dark scrim of a photo */
+.focus .close-x{position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);color:#F2EDBD;background:rgba(255,255,255,.12);box-shadow:inset 0 0 0 1px rgba(255,255,255,.2)}
+#v-write .craft-head,#v-write .cname,#v-write .flip,#v-write .bar{transition:opacity .2s var(--ease)}
+#v-write.focused{overflow:visible}
+#v-write.focused .craft-head,#v-write.focused .cname,#v-write.focused .flip,#v-write.focused .bar{opacity:0;visibility:hidden;pointer-events:none}
+#v-write.focused #stage{position:absolute;z-index:5;inset:calc(var(--top-gap) + 30px) 0 calc(16px - var(--nav-space)) 0}
+#v-write.focused #gl{cursor:default}
+body:has(#v-write.focused) .tabs{opacity:0;pointer-events:none;transform:translate(-50%,14px);transition:opacity .2s,transform .3s var(--ease)}
+.tabs{transition:opacity .2s,transform .3s var(--ease)}
+@media (prefers-reduced-motion:reduce){.close-x,.close-x svg,#wClose{transform:none!important;transition:opacity .2s}}
+
+/* the board's hint: room kept for it so nothing jumps when it appears */
+.b-hint{min-height:1.2em;opacity:0;transition:opacity .35s var(--ease)}
+.b-hint.on{opacity:.8}
+/* small phones: back / next on the board keep just their arrows so the envelope, + and trash stay centred (the words stay for screen readers) */
+@media (max-width:374px){.board-foot .act span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}}

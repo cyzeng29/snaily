@@ -11,7 +11,17 @@ const Board=(()=>{
  const TAPES=['#EB5E3A','#7CA2E0','#D9C47A','#C9A36A'];
  const hash=s=>{let h=2166136261;for(const c of s)h=Math.imul(h^c.charCodeAt(0),16777619);return h>>>0};
  const jitter=id=>((hash(id)%1000)/1000*2-1)*1.5;
- let layout=[],openIdx=-1,replaceIdx=-1,undo=null,toastT=null,dragEnd=0;
+ let layout=[],openIdx=-1,replaceIdx=-1,undo=null,toastT=null,dragEnd=0,edW=0;
+ /* a polaroid keeps one set of proportions everywhere: the mat, the caption strip and its type are all fractions of its width,
+    so a caption looks the same on the board as in the editor, at any size. One line if it fits, otherwise two smaller ones */
+ const MAT=.035,STRIP=.2,measure=document.createElement('canvas').getContext('2d');
+ function capFit(text,W){const mat=W*MAT;let fs=W*.08,lines=1;measure.font=`400 ${fs}px "Open Sauce Sans"`;
+  if(text&&measure.measureText(text).width>W-2*mat-4){fs=W*.062;lines=2}
+  return{mat,strip:W*STRIP,fs,lh:fs*1.18,lines}}
+ function capVars(e,c){[['--mat',c.mat],['--strip',c.strip],['--cap',c.fs],['--cap-lh',c.lh]].forEach(([k,v])=>e.style.setProperty(k,v+'px'));e.style.setProperty('--cap-n',c.lines)}
+ /* the hint under the board: from the first photo until one has been opened */
+ const hintEl=$('#bHint'),touch=matchMedia('(hover:none)');let tipped=false;try{tipped=localStorage.getItem('snaily-photo-tip')==='1'}catch(e){}
+ function paintHint(n){const on=n>0&&!tipped;if(on)hintEl.textContent=`${touch.matches?'Tap':'Click on'} ${n>1?'a':'the'} photo to customize.`;hintEl.classList.toggle('on',on)}
 
  const photos=()=>Store.draft?Store.draft.photos:[];
  const mode=()=>Store.draft&&Store.draft.layout==='grid'?'grid':'collage';
@@ -64,7 +74,7 @@ const Board=(()=>{
  async function render(){
   const ps=photos(),grid=mode()==='grid';if(place(ps))Store.save({photos:ps});layout=frames();el.textContent='';el.classList.toggle('grid',grid);paintLay();
   count.textContent=ps.length?`${ps.length} of ${Store.MAX_PHOTOS} photos`:'';
-  next.disabled=!ps.length;addB.disabled=ps.length>=Store.MAX_PHOTOS;
+  next.disabled=!ps.length;addB.disabled=ps.length>=Store.MAX_PHOTOS;$('#v-board').classList.toggle('empty',!ps.length);paintHint(ps.length);
   if(!ps.length){const e=document.createElement('div');e.className='board-empty';
    e.innerHTML='<button class="big" id="bAddBig"><span>Add Photos</span><i aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></i></button>';
    el.append(e);e.querySelector('button').onclick=()=>pick(-1);return}
@@ -74,7 +84,7 @@ const Board=(()=>{
    Object.assign(b.style,{left:f.x+'px',top:f.y+'px',width:f.w+'px',height:f.h+'px',zIndex:p.z||i+1,
     transform:`translate(${nx}px,${ny}px) rotate(${f.r}deg)`});
    // polaroid strip: a fifth of the width, with the caption written on it
-   const st=Math.max(18,Math.round(f.w*.2));b.style.setProperty('--strip',st+'px');b.style.setProperty('--cap',Math.max(8,Math.round(st*.4))+'px');
+   capVars(b,capFit(p.caption,f.w));
    const img=document.createElement('img');img.alt='';img.draggable=false;Store.url(p.blobId).then(u=>img.src=u);b.append(img);
    const ink=Ink.svg(p);if(ink)b.append(ink);
    if(p.caption){const cap=document.createElement('span');cap.className='ph-cap';cap.setAttribute('aria-hidden','true');cap.textContent=p.caption;b.append(cap)}
@@ -121,26 +131,35 @@ const Board=(()=>{
  function pick(idx){replaceIdx=idx;file.value='';file.click()}
  file.onchange=async()=>{
   const files=[...file.files];if(!files.length)return;
+  const big=replaceIdx<0&&!photos().length&&el.querySelector('.board-empty .big i'),from=big&&big.getBoundingClientRect();
   const ps=photos(),room=replaceIdx>=0?1:Store.MAX_PHOTOS-ps.length,use=files.slice(0,room);
   toast(use.length>1?'getting your photos ready…':'getting your photo ready…',null,60000);
   const errs=[];
   for(const f of use){try{const p=await Store.putPhoto(f);
     if(replaceIdx>=0){const old=ps[replaceIdx];p.caption=old.caption;if(old.ink&&Math.abs(p.w/p.h-old.w/old.h)<.02)p.ink=old.ink;p.nudge=old.nudge;p.z=old.z;p.pos=old.pos;ps[replaceIdx]=p;Store.dropBlob(old.blobId)}
     else{ps.push(p);place(ps)}}catch(e){errs.push(e.message)}}
-  Store.save({photos:ps});await render();
+  Store.save({photos:ps});await render();if(from&&ps.length)growPlus(from);
   if(replaceIdx>=0&&openIdx>=0){Store.url(ps[openIdx].blobId).then(u=>fPhoto.src=u);Ink.redraw()}
   if(errs.length)toast(errs[0],null,5000);
   else if(files.length>room)toast(`only ${Store.MAX_PHOTOS} photos fit on a board.`,null,4000);
   else hideToast()};
 
+ /* the empty board's big + doesn't vanish: it shrinks down into the footer, where it stays as the + */
+ function growPlus(from){if(calm())return;const to=addB.getBoundingClientRect();if(!to.width)return;
+  // it travels over the photo that just arrived, which settles in a beat behind it
+  const ph=el.querySelector('.ph');if(ph)ph.animate([{opacity:0,scale:.92},{opacity:1,scale:1}],{duration:380,delay:120,easing:'ease-out',fill:'backwards'});
+  addB.style.position='relative';addB.style.zIndex=150;setTimeout(()=>{addB.style.position=addB.style.zIndex=''},700);
+  addB.animate([{transform:`translate(${from.left+from.width/2-to.left-to.width/2}px,${from.top+from.height/2-to.top-to.height/2}px) scale(${from.width/to.width})`},
+   {transform:'translateY(-8px) scale(1.08)',offset:.78},{transform:'none'}],{duration:640,easing:'cubic-bezier(.35,.1,.25,1)'})}
  /* focus: the photo lifts to the front as a polaroid; no tool is picked until you tap one */
  function open(i){
   const p=photos()[i],b=el.querySelector(`.ph[data-i="${i}"]`);if(!p||!b)return;
   openIdx=i;Store.url(p.blobId).then(u=>fPhoto.src=u);
-  fCap.value=p.caption||'';setTool(null);Ink.redraw();
+  if(!tipped){tipped=true;try{localStorage.setItem('snaily-photo-tip','1')}catch(e){}paintHint(0)}
+  fCap.value=p.caption||'';edW=0;setTool(null);Ink.redraw();
   focusEl.hidden=false;focusEl.classList.remove('typing');
   const from=b.getBoundingClientRect(),f=layout[i];b.style.visibility='hidden';
-  const go=()=>{const to=fCard.getBoundingClientRect();
+  const go=()=>{sizeCard();const to=fCard.getBoundingClientRect();
    if(calm()){focusEl.animate([{opacity:0},{opacity:1}],{duration:200});return}
    const s=from.width/Math.max(1,to.width);
    fCard.animate([{transform:`translate(${from.left+from.width/2-(to.left+to.width/2)}px,${from.top+from.height/2-(to.top+to.height/2)}px) scale(${s}) rotate(${f.r}deg)`},{transform:'none'}],{duration:380,easing:'cubic-bezier(.2,.9,.25,1.05)'});
@@ -162,10 +181,14 @@ const Board=(()=>{
    b.style.visibility=''}
   focusEl.hidden=true;focusEl.getAnimations({subtree:true}).forEach(a=>a.cancel());
   if(b)b.focus({preventScroll:true})}
- // tapping anywhere off the photo and tools closes it
- $('#fScrim').onclick=close;
+ /* the editor's polaroid: its width is the photo's plus the mat, and everything else follows from that width */
+ function sizeCard(){const P=fPhoto.getBoundingClientRect().width;if(P){edW=P/(1-2*MAT);fitCap()}}
+ function fitCap(){if(edW)capVars(fCard,capFit(fCap.value,edW))}
+ addEventListener('resize',()=>{if(openIdx>=0)sizeCard()});
+ // the X, or tapping anywhere off the photo and tools, closes it
+ $('#fScrim').onclick=close;$('#fClose').onclick=close;
  addEventListener('keydown',e=>{if(e.key==='Escape'&&openIdx>=0)close()});
- fCap.oninput=()=>{const ps=photos();if(ps[openIdx]){ps[openIdx].caption=fCap.value;Store.save({photos:ps})}};
+ fCap.oninput=()=>{fCap.value=fCap.value.replace(/\n/g,' ');fitCap();const ps=photos();if(ps[openIdx]){ps[openIdx].caption=fCap.value;Store.save({photos:ps})}};
  // on phones the tools tuck away while typing; bring them back a beat after blur so a tap on "done" lands first
  let typingT=null;
  fCap.onfocus=()=>{clearTimeout(typingT);focusEl.classList.add('typing');setTool('type')};
@@ -207,7 +230,37 @@ const Board=(()=>{
  addEventListener('pointerdown',e=>{if(peek.classList.contains('open')&&!peek.contains(e.target)&&e.target!==bEnv)showCard(false)},true);
  addEventListener('keydown',e=>{if(e.key==='Escape'&&peek.classList.contains('open'))showCard(false)});
  addEventListener('snaily:view',e=>{if(e.detail!=='board')showCard(false)});
- next.onclick=()=>{Store.flush();location.hash='sent'};
+ /* next: the envelope grows, the photos drop into it one by one (in order) and slide in behind its front,
+    then it settles back down to its small size and on to the review */
+ const OPEN_MOUTH=.42;// where the flap meets the body of images/envelope-open.png, as a fraction of its height
+ let packing=false;
+ next.onclick=async()=>{if(packing)return;Store.flush();
+  if(calm()||!photos().length){location.hash='sent';return}
+  packing=true;const foot=[addB,trash,$('#bBack'),next,hintEl,lay];
+  try{await packUp(foot)}catch(e){}
+  location.hash='sent';
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{[bEnv,...foot].forEach(e=>e.getAnimations().forEach(a=>a.cancel()));
+   el.querySelectorAll('.packing').forEach(c=>c.remove());el.querySelectorAll('.ph').forEach(b=>b.style.visibility='');packing=false}))};
+ async function packUp(foot){
+  showCard(false);const S=1.8,lifted=`translateY(-6px) scale(${S})`;
+  foot.forEach(e=>e.animate([{opacity:1},{opacity:0}],{duration:200,fill:'forwards'}));
+  await bEnv.animate([{transform:'none'},{transform:`translateY(-8px) scale(${S*1.06})`,offset:.7},{transform:lifted}],{duration:380,easing:'cubic-bezier(.3,1.3,.5,1)',fill:'forwards'}).finished;
+  const er=bEnv.getBoundingClientRect(),br=el.getBoundingClientRect(),mouth=er.top+er.height*OPEN_MOUTH,bodyW=er.width*.94,bodyH=er.bottom-mouth;
+  const phs=[...el.querySelectorAll('.ph')].sort((a,b)=>a.dataset.i-b.dataset.i);
+  await Promise.all(phs.map((b,k)=>{const f=layout[+b.dataset.i];if(!f)return;
+   let w=bodyW*.7,h=w*f.h/f.w;if(h>bodyH*.85){h=bodyH*.85;w=h*f.w/f.h}
+   const sc=w/f.w,ox=f.x+f.w/2,oy=f.y+f.h/2,cx=er.left+er.width/2-br.left+(k%2?3:-3),cy=mouth+4-h/2-br.top,tilt=k%2?4:-4;
+   const at=(y,r=tilt,s=sc)=>`translate(${cx-ox}px,${y-oy}px) rotate(${r}deg) scale(${s})`;
+   const c=b.cloneNode(true);c.classList.add('packing');c.tabIndex=-1;c.setAttribute('aria-hidden','true');c.style.zIndex=200;el.append(c);
+   return wait(k*110).then(()=>{b.style.visibility='hidden';
+    return c.animate([{transform:b.style.transform},{transform:`translate(${(cx-ox)*.55}px,${Math.min(0,cy-oy)*.55-40}px) rotate(${f.r/2}deg) scale(${(1+sc)/2})`,offset:.5},{transform:at(cy)}],
+     {duration:520,easing:'cubic-bezier(.45,.05,.35,1)',fill:'forwards'}).finished})
+    // and in it goes, behind the front of the envelope
+    .then(()=>{c.style.zIndex=1;return c.animate([{transform:at(cy)},{transform:at(mouth+h/2+6-br.top,0)}],{duration:220,easing:'cubic-bezier(.6,0,.9,.6)',fill:'forwards'}).finished})
+    .then(()=>c.remove())}));
+  // a little gulp, then back down to size
+  await bEnv.animate([{transform:lifted},{transform:`translateY(-6px) scale(${S*1.08},${S*.9})`,offset:.25},{transform:`translateY(-10px) scale(${S*.97},${S*1.04})`,offset:.5},{transform:'none'}],{duration:560,easing:'cubic-bezier(.3,1.1,.5,1)',fill:'forwards'}).finished}
+ const wait=ms=>new Promise(r=>setTimeout(r,ms));
  addB.onclick=()=>pick(-1);$('#bBack').onclick=()=>{Store.flush();location.hash='write'};
 
  function show(){
