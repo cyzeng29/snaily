@@ -20,7 +20,7 @@
  boxBtns.forEach(b=>b.onclick=()=>{box=b.dataset.box;paint()});
 
  const img=src=>Prints.loadImg(src);
- async function open(it){from=document.activeElement;cur=it;det.hidden=false;dH.textContent=it.to?`To ${it.to}`:'Your postcard';
+ async function open(it){from=document.activeElement;cur=it;det.hidden=false;dH.textContent=it.to?`To ${it.to}`:'Your Postcard';
   dSub.textContent=`Sent ${when(it.sentAt)}`+(it.deliverAt&&new Date(it.deliverAt)-new Date(it.sentAt)>60000?` · arrives ${when(it.deliverAt)}`:'');
   dNote.hidden=true;dStage.textContent='';cmp=null;dFlip.hidden=false;
   if(!matchMedia('(prefers-reduced-motion:reduce)').matches)det.animate([{opacity:0},{opacity:1}],{duration:220});
@@ -32,7 +32,7 @@
   const[f,b,...ps]=await Promise.all([kept.front,kept.back,...kept.prints].map(id=>Store.url(id).then(img)));if(cur!==it)return;
   const L=kept.layout||{mode:'clip',prints:[]},ids=ps.map((_,k)=>'p'+k),canvas={};
   ids.forEach((id,k)=>{const q=L.prints&&L.prints[k];if(q)canvas[id]={...q}});
-  cmp=Compose.make(dStage,{label:'The postcard you sent. Tap it to turn it over.'});
+  cmp=Compose.make(dStage,{label:'The postcard you sent. Tap it to turn it over.',onPhoto:i=>PhotoView.open(ps.map(src=>({src})),i)});
   cmp.onSide=s=>{dFlip.querySelector('span').textContent=s?'see the front':'see the back'};
   cmp.set({front:f,back:b,prints:ps.map((p,k)=>({id:ids[k],src:p,w:p.naturalWidth,h:p.naturalHeight})),mode:L.mode,canvas})}
  function close(){if(det.hidden)return;det.hidden=true;cur=null;cmp=null;dStage.textContent='';if(from&&from.focus)from.focus({preventScroll:true})}

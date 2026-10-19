@@ -367,8 +367,6 @@ body:has(.focus:not([hidden])) .tabs{opacity:0;pointer-events:none}
 .fld:focus-within{box-shadow:inset 0 0 0 2px var(--blue)}
 
 /* ===== a postcard link ===== */
-body.viewing{--nav-space:env(safe-area-inset-bottom,0px)}
-body.viewing .tabs{display:none}
 #v-open{padding:0}
 .open-from{margin:var(--top-gap) 16px 0;text-align:center;font:400 30px/1.15 'Instrument Serif',Georgia,serif}
 .open-msg{display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:0 28px;text-align:center}
@@ -377,8 +375,11 @@ body.viewing .tabs{display:none}
 .open-snail{width:132px;height:92px;background:var(--snail) center/contain no-repeat;animation:crawl 2.4s ease-in-out infinite}
 @keyframes crawl{0%,100%{transform:translateX(-8px) scaleX(1)}50%{transform:translateX(8px) scaleX(1.04)}}
 #v-open[data-state="wait"] #oWait,#v-open[data-state="lost"] #oLost{display:flex}
-#v-open:not([data-state="card"]) #oStage,#v-open:not([data-state="card"]) #oCmp,#v-open:not([data-state="card"]) #oFlip,#v-open:not([data-state="card"]) #oSave{display:none}
+#v-open:not([data-state="card"]) #oStage,#v-open:not([data-state="card"]) #oCmp,#v-open:not([data-state="card"]) #oFlip{display:none}
 #v-open[data-state="lost"] .open-from{visibility:hidden}
+#v-open[data-state="loading"] .open-from{margin:auto 16px}
+.o-hint{margin:2px 20px 0;text-align:center;font-size:15px}
+#v-open:not([data-state="card"]) .o-hint{display:none}.o-hint[hidden]{display:none}
 #v-open:not([data-state="card"]) .acts{justify-content:center}
 a.act{text-decoration:none}
 @media (prefers-reduced-motion:reduce){.open-snail{animation:none}}
@@ -420,7 +421,7 @@ body:has(#v-write.focused) .tabs{opacity:0;pointer-events:none;transform:transla
 @media (hover:hover){.reorder:hover svg{transform:translateX(2px)}}
 .reorder:active svg{transform:none}
 .cmp{perspective:1800px;-webkit-user-select:none;user-select:none}
-.cmp-card{position:absolute;z-index:10;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.cmp-card{position:absolute;z-index:10;cursor:pointer;transform-style:preserve-3d;-webkit-tap-highlight-color:transparent}
 .cmp-flip{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .75s cubic-bezier(.3,1.15,.4,1)}
 .cmp-card.flipped .cmp-flip{transform:rotateY(180deg)}
 .cmp-face{position:absolute;inset:0;overflow:hidden;border-radius:7.4%/5%;background:#fbf6e6;-webkit-backface-visibility:hidden;backface-visibility:hidden;
@@ -501,21 +502,23 @@ body:has(.reo:not([hidden])) .tabs,body:has(.sendv:not([hidden])) .tabs,body:has
 .e-front{z-index:3;filter:drop-shadow(0 -2px 3px rgba(43,16,12,.14))}
 .e-front path:first-child{fill:#fffdf4;stroke:#6C2C25;stroke-width:2.5;stroke-linejoin:round}
 .e-fold{fill:none;stroke:#6C2C25;stroke-width:2;stroke-linecap:round;opacity:.3}
-.e-card{position:absolute;z-index:2;left:27%;bottom:24%;width:46%;aspect-ratio:920/1360;transform-origin:50% 100%;transform:rotate(-5deg);transition:transform .6s cubic-bezier(.3,1.3,.5,1)}
+/* clipped along its own bottom edge (which always sits inside the pocket), so it can sink in without poking out underneath */
+.e-card{position:absolute;z-index:2;left:27%;bottom:24%;width:46%;aspect-ratio:920/1360;transform-origin:50% 100%;transform:rotate(-5deg);clip-path:inset(-40% -40% 0 -40%);transition:transform .6s cubic-bezier(.3,1.3,.5,1)}
 .e-card canvas{display:block;width:100%;height:100%;border-radius:7.4%/5%;box-shadow:0 2px 4px rgba(43,16,12,.18),0 14px 22px -10px rgba(43,16,12,.55)}
 .e-flap{position:absolute;z-index:1;left:0;top:0;width:100%;height:65%;transform-origin:50% 0;transform:rotateX(180deg);transition:transform .7s cubic-bezier(.3,1.25,.5,1)}
 .e-flap svg{display:block;width:100%;height:100%;overflow:visible}
 .e-flap path{fill:#f4ebcf;stroke:#6C2C25;stroke-width:2.5;stroke-linejoin:round;vector-effect:non-scaling-stroke}
 .e-shadow{position:absolute;left:4%;right:4%;bottom:-18px;height:28px;border-radius:50%;background:radial-gradient(closest-side,rgba(43,16,12,.34),transparent);transform:translateZ(-30px);transition:opacity .6s}
 /* hover (or a tap, or keyboard focus): it tips toward you and the flap starts to close */
-@media (hover:hover){.env3d:hover .e-tilt{transform:rotateX(4deg) rotateY(-12deg) rotateZ(-2.5deg) translateY(-6px)}.env3d:hover .e-flap{transform:rotateX(124deg)}.env3d:hover .e-card{transform:rotate(-1.5deg) translateY(5%)}.env3d:hover .e-shadow{opacity:.6}}
+@media (hover:hover){.env3d:hover .e-tilt{transform:rotateX(4deg) rotateY(-12deg) rotateZ(-2.5deg) translateY(-6px)}.env3d:hover .e-flap{transform:rotateX(112deg)}.env3d:hover .e-card{transform:rotate(-1.5deg) translateY(14%)}.env3d:hover .e-shadow{opacity:.6}}
 .env3d.peek .e-tilt,.env3d:focus-visible .e-tilt{transform:rotateX(4deg) rotateY(-12deg) rotateZ(-2.5deg) translateY(-6px)}
-.env3d.peek .e-flap,.env3d:focus-visible .e-flap{transform:rotateX(124deg)}
-.env3d.peek .e-card,.env3d:focus-visible .e-card{transform:rotate(-1.5deg) translateY(5%)}
+.env3d.peek .e-flap,.env3d:focus-visible .e-flap{transform:rotateX(112deg)}
+.env3d.peek .e-card,.env3d:focus-visible .e-card{transform:rotate(-1.5deg) translateY(14%)}
 .env3d:focus-visible{outline:3px solid var(--blue);outline-offset:16px;border-radius:14px}
 /* sending: the card slides in, the flap folds down over it (in front of the card once it's past upright) */
-/* the card is taller than the envelope, so it shrinks a touch as it slides in to fit wholly inside (no overshoot, or it pokes out the bottom) */
-.sendv.sealing .e-card{transform:translateY(20%) scale(.85);transition:transform .5s cubic-bezier(.4,.1,.3,1)}
+/* the card is taller than the envelope, so it sinks all the way into the pocket (out of sight before the flap is down);
+   its clip rises as it goes, keeping its bottom edge just inside the envelope */
+.sendv.sealing .e-card{transform:translateY(100%);clip-path:inset(-40% -40% 80% -40%);transition:transform .55s cubic-bezier(.4,.1,.3,1),clip-path .55s cubic-bezier(.4,.1,.3,1)}
 .sendv.sealing .e-flap{transform:rotateX(0);z-index:4;transition:transform .6s .18s cubic-bezier(.4,.1,.3,1),z-index 0s .45s}
 .sendv.sealing .e-tilt{transform:rotateX(6deg) translateY(-4px);animation:wait 1.1s .8s ease-in-out infinite}
 @keyframes wait{50%{translate:0 -5px}}
@@ -571,3 +574,32 @@ body:has(.reo:not([hidden])) .tabs,body:has(.sendv:not([hidden])) .tabs,body:has
 /* the WebGL rule above makes every canvas fill its box; the prints, the carousel and the envelope's card are just pictures */
 .cmp canvas,.reo canvas,.sendv canvas{position:static;inset:auto;touch-action:auto;cursor:inherit}
 .cmp.live[data-mode="canvas"] .cmp-print canvas{touch-action:none}
+
+/* ===== photo viewer: a postcard's photos up close, to save (js/photos.js); it borrows the reorder carousel's look ===== */
+.reo.pv{z-index:94}
+.pv-row{--it:min(66vw,300px,calc((100vh - 330px) * .72));--it:min(66vw,300px,calc((100dvh - 330px) * .72));position:relative;display:flex;align-items:center}
+.pv-row .pv-track{flex:1;min-width:0;align-items:center}
+/* the one in view is bright; its neighbours wait dimmed at the sides */
+.pv-track .reo-item{opacity:.4;transition:opacity .25s var(--ease)}.pv-track .reo-item.on{opacity:1}
+.pv-ph{cursor:default}
+.pv-ph canvas{-webkit-touch-callout:default}
+.pv-arrow{position:absolute;z-index:2;top:50%;width:44px;height:44px;margin-top:-22px;padding:0;border:0;border-radius:50%;display:grid;place-items:center;cursor:pointer;color:#F2EDBD;background:rgba(255,255,255,.12);box-shadow:inset 0 0 0 1px rgba(255,255,255,.2);transition:opacity .2s,transform .18s var(--ease)}
+.pv-arrow svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.pv-prev{left:20px}
+.pv-next{right:20px}.pv-next svg{transform:scaleX(-1)}
+.pv-arrow:disabled{opacity:0;pointer-events:none}
+.pv-row.one .pv-arrow{display:none}
+.pv-acts{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin:8px 20px 0}
+.pv-save{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 18px;border:0;border-radius:99px;cursor:pointer;font:600 16px/1 'Open Sauce Sans',system-ui,sans-serif;color:#6C2C25;background:#F2EDBD;transition:transform .18s var(--ease)}
+.pv-save[data-save="all"]{color:#F2EDBD;background:rgba(255,255,255,.12);box-shadow:inset 0 0 0 1px rgba(255,255,255,.3)}
+.pv-save[hidden]{display:none}
+.pv-save svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.pv-save:active,.pv-arrow:active{transform:scale(.94)}
+.pv-arrow:focus-visible,.pv-save:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+/* on a phone you swipe, so the arrows step aside */
+@media (pointer:coarse){.pv-arrow{display:none}}
+/* a photo on a sent or received card can be opened */
+.cmp.viewable .cmp-print{cursor:zoom-in}
+.cmp.viewable .cmp-print:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+@media (hover:hover){.cmp.viewable:not(.flipped) .cmp-print:hover{scale:1.03}}
+@media (prefers-reduced-motion:reduce){.pv-save,.pv-arrow,.pv-track .reo-item{transition:none}}

@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>snaily</title>
+<title>Snaily</title>
 <meta name="theme-color" content="#F2EDBD" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#6C2C25" media="(prefers-color-scheme: dark)">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="snaily">
+<meta name="apple-mobile-web-app-title" content="Snaily">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="images/favicon.png" type="image/png">
 <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
@@ -19,11 +19,11 @@
 <link href="https://cdn.jsdelivr.net/npm/@fontsource/open-sauce-sans@5.3.0/600.css" rel="stylesheet">
 <script>try{const t=localStorage.getItem('snaily-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 <!-- bump ?v= when css/js change, so browsers drop their cached copies -->
-<link rel="stylesheet" href="css/app.css?v=19">
+<link rel="stylesheet" href="css/app.css?v=20">
 </head>
 <body class="intro">
 <header class="top">
-  <a class="brand" href="#home" aria-label="snaily home"><span id="logo" aria-hidden="true"></span><span class="word">snaily</span></a>
+  <a class="brand" href="#home" aria-label="Snaily home"><span id="logo" aria-hidden="true"></span><span class="word">Snaily</span></a>
 </header>
 <main>
   <!-- WELCOME (home): kept minimal on purpose; add details here -->
@@ -122,7 +122,7 @@
       <div class="reo-scrim" id="reoScrim"></div>
       <div class="reo-body" role="dialog" aria-modal="true" aria-labelledby="reoH" aria-describedby="reoTip">
         <button class="close-x" id="reoClose" aria-label="Close reorder"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg></button>
-        <h3 id="reoH">Reorder photos</h3>
+        <h3 id="reoH">Reorder Photos</h3>
         <p class="reo-tip" id="reoTip"></p>
         <ol class="reo-track" id="reoTrack"></ol>
         <p class="sr" id="reoLive" aria-live="assertive"></p>
@@ -130,7 +130,7 @@
       <div class="confirm" id="reoConfirm" hidden>
         <div class="confirm-card" role="alertdialog" aria-modal="true" aria-labelledby="cfH" aria-describedby="cfP">
           <canvas class="confirm-ph" id="cfPh" aria-hidden="true"></canvas>
-          <h4 id="cfH">Delete this photo?</h4>
+          <h4 id="cfH">Delete This Photo?</h4>
           <p id="cfP">It comes off your postcard and your photo board.</p>
           <div class="confirm-acts"><button class="btn" id="cfCancel">Cancel</button><button class="btn danger" id="cfDelete">Delete</button></div>
         </div>
@@ -175,12 +175,12 @@
     <p class="open-from" id="oFrom" aria-live="polite"></p>
     <div id="oStage"><canvas id="ogl" aria-label="Your postcard. Drag to turn it, tap to flip it over."></canvas></div>
     <div class="p-stage" id="oCmp" hidden></div>
-    <div class="open-msg" id="oWait"><div class="open-snail" aria-hidden="true"></div><h2>on its way</h2><p id="oWaitTxt"></p><p class="muted" id="oCount" aria-live="off"></p></div>
-    <div class="open-msg" id="oLost"><div class="open-snail" aria-hidden="true"></div><h2>this postcard got lost</h2><p class="muted" id="oLostTxt">check the link, or ask them to send it again.</p></div>
+    <div class="open-msg" id="oWait"><div class="open-snail" aria-hidden="true"></div><h2>On Its Way</h2><p id="oWaitTxt"></p><p class="muted" id="oCount" aria-live="off"></p></div>
+    <div class="open-msg" id="oLost"><div class="open-snail" aria-hidden="true"></div><h2>This Postcard Got Lost</h2><p class="muted" id="oLostTxt">check the link, or ask them to send it again.</p></div>
+    <p class="muted o-hint" id="oHint" hidden>tap the photos to see them all</p>
     <button class="flip" id="oFlip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3M18 3v4h-4M6 21v-4h4"/></svg><span>see the back</span></button>
     <div class="bar">
       <div class="acts">
-        <button class="act" id="oSave"><span>keep it</span></button>
         <a class="act" id="oMake" href="./"><span>make your own</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
       </div>
     </div>
@@ -207,13 +207,13 @@
   </section>
 
   <section class="view" id="v-settings" aria-label="Settings">
-    <h2>settings</h2>
+    <h2>Settings</h2>
     <fieldset class="field"><legend>appearance</legend>
       <div class="seg" role="group" aria-label="Appearance">
-        <button data-theme-set="system" aria-pressed="true">system</button><button data-theme-set="light" aria-pressed="false">light</button><button data-theme-set="dark" aria-pressed="false">dark</button>
+        <button data-theme-set="light" aria-pressed="true">light</button><button data-theme-set="dark" aria-pressed="false">dark</button>
       </div>
     </fieldset>
-    <p class="muted">snaily: little postcards, sent slowly.</p>
+    <p class="muted">Snaily: little postcards, sent slowly.</p>
   </section>
 </main>
 <nav class="tabs" aria-label="Main">
@@ -259,21 +259,22 @@
 <div id="intro" aria-hidden="true"><div id="shake"><div class="ink"></div><div id="stampWrap"><div class="stamp full"></div><div class="stamp empty"></div></div></div></div>
 <div id="fly" aria-hidden="true"><div class="fx"><div class="fy"><div class="fs"><div class="fq"><div class="fr"></div></div></div></div></div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="js/store.js?v=19"></script>
-<script src="js/designs.js?v=19"></script>
-<script src="js/postcard.js?v=19"></script>
-<script src="js/shell.js?v=19"></script>
-<script src="js/craft.js?v=19"></script>
-<script src="js/ink.js?v=19"></script>
-<script src="js/board.js?v=19"></script>
-<script src="js/send.js?v=19"></script>
+<script src="js/store.js?v=20"></script>
+<script src="js/designs.js?v=20"></script>
+<script src="js/postcard.js?v=20"></script>
+<script src="js/shell.js?v=20"></script>
+<script src="js/craft.js?v=20"></script>
+<script src="js/ink.js?v=20"></script>
+<script src="js/board.js?v=20"></script>
+<script src="js/send.js?v=20"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="js/config.js?v=19"></script>
-<script src="js/net.js?v=19"></script>
-<script src="js/card3d.js?v=19"></script>
-<script src="js/compose.js?v=19"></script>
-<script src="js/preview.js?v=19"></script>
-<script src="js/archive.js?v=19"></script>
-<script src="js/open.js?v=19"></script>
+<script src="js/config.js?v=20"></script>
+<script src="js/net.js?v=20"></script>
+<script src="js/card3d.js?v=20"></script>
+<script src="js/compose.js?v=20"></script>
+<script src="js/photos.js?v=20"></script>
+<script src="js/preview.js?v=20"></script>
+<script src="js/archive.js?v=20"></script>
+<script src="js/open.js?v=20"></script>
 </body>
 </html>

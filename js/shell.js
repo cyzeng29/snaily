@@ -3,7 +3,7 @@ const VIEWS=['home','write','board','sent','gallery','settings','open'],PARENT={
 const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
 // the home tab remembers where you were in the postcard flow (home, write, board, sent), like Instagram tabs keep their place
 let lastHome='home';
-// a postcard link (?p=<id>) opens just that postcard (js/open.js): no tabs, no intro
+// a postcard link (?p=<id>) opens just that postcard (js/open.js), with no intro; the tabs lead out to the app
 const OPENING=new URLSearchParams(location.search).get('p');if(OPENING)body.classList.add('viewing');
 function route(){const v=OPENING?'open':VIEWS.includes(location.hash.slice(1))&&location.hash!=='#open'?location.hash.slice(1):'home';
  if(v==='home'||PARENT[v])lastHome=v;
@@ -12,7 +12,7 @@ function route(){const v=OPENING?'open':VIEWS.includes(location.hash.slice(1))&&
  body.dataset.view=v;setWrite(v==='write');dispatchEvent(new CustomEvent('snaily:view',{detail:v}))}
 addEventListener('hashchange',route);
 // tapping home while already in the flow pops back to the home screen; from another tab it returns to the saved spot
-$$('.tab').forEach(t=>t.onclick=()=>{const g=t.dataset.go;location.hash=g==='home'&&t.getAttribute('aria-current')!=='page'?lastHome:g});
+$$('.tab').forEach(t=>t.onclick=()=>{const g=t.dataset.go;if(OPENING){location.href=location.pathname+'#'+g;return}location.hash=g==='home'&&t.getAttribute('aria-current')!=='page'?lastHome:g});
 // the write view has its own back, down by the colours
 const wBack=$('#wBack');if(wBack)wBack.onclick=()=>{location.hash='home'};
 const h=new Date().getHours(),part=h<12?'morning':h<18?'afternoon':'evening';
@@ -43,10 +43,11 @@ $('#greet').textContent='Good '+part[0].toUpperCase()+part.slice(1);
    b.animate([{transform:'translate(0,0) scale(0)',opacity:1},{transform:`translate(${x*.8}px,${y*.8}px) scale(${s})`,opacity:1,offset:.45},{transform:`translate(${x}px,${y+8}px) scale(${s*.6}) rotate(${a>-1.57?90:-90}deg)`,opacity:0}],
     {duration:900+Math.random()*250,delay:120,easing:'cubic-bezier(.2,.8,.3,1)',fill:'both'})}};
 })();
-function setTheme(v,save){const r=document.documentElement;v==='system'?r.removeAttribute('data-theme'):r.setAttribute('data-theme',v);
+function setTheme(v,save){const r=document.documentElement;if(save)r.setAttribute('data-theme',v);
  $$('[data-theme-set]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.themeSet===v));if(save)try{localStorage.setItem('snaily-theme',v)}catch(e){}}
 $$('[data-theme-set]').forEach(b=>b.onclick=()=>setTheme(b.dataset.themeSet,true));
-setTheme(document.documentElement.getAttribute('data-theme')||'system');
+// nothing picked yet: it follows the device, and the switch shows which that is
+setTheme(document.documentElement.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'));
 route();
 
 /* ---------- intro: stamp thump, snail hops into the logo ---------- */

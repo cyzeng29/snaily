@@ -45,15 +45,17 @@ const Compose=(()=>{
  const hash=s=>{let h=2166136261;for(const c of s)h=Math.imul(h^c.charCodeAt(0),16777619);return h>>>0};
  const wob=(id,k)=>(hash(id+':'+k)%1000)/1000*2-1;
  const calm=()=>matchMedia('(prefers-reduced-motion:reduce)').matches;
- // an antique brass bookmark clip: thin aged wire with a round pad soldered to its top
- const CLIP='<svg viewBox="0 0 24 62"><defs><radialGradient id="cmpPad" cx=".36" cy=".32" r=".75"><stop offset="0" stop-color="#a8955f"/><stop offset=".55" stop-color="#75653c"/><stop offset="1" stop-color="#463a20"/></radialGradient></defs><path d="M9 40V14a4 4 0 0 1 8 0v38a7 7 0 0 1-14 0V10a9 9 0 0 1 18 0v34" fill="none" stroke="#4f4326" stroke-width="1.9" stroke-linecap="round"/><path d="M9 40V14a4 4 0 0 1 8 0v38a7 7 0 0 1-14 0V10a9 9 0 0 1 18 0v34" fill="none" stroke="#c7b583" stroke-opacity=".55" stroke-width=".6" stroke-linecap="round" transform="translate(-.35 -.3)"/><circle cx="8" cy="6.5" r="6.2" fill="url(#cmpPad)" stroke="#3d331c" stroke-width=".6"/><circle cx="8" cy="6.5" r="5.2" fill="none" stroke="#c2b07c" stroke-opacity=".35" stroke-width=".45"/><path d="M4.6 4.4a4.4 4.4 0 0 1 3.6-2.3" fill="none" stroke="#e0d2a4" stroke-opacity=".5" stroke-width=".7" stroke-linecap="round"/><g fill="#3d331c" fill-opacity=".35"><circle cx="10.2" cy="8.6" r=".5"/><circle cx="6.1" cy="9.3" r=".35"/><circle cx="9.4" cy="4.2" r=".3"/></g></svg>';
+ // an antique brass paper clip: thin aged wire
+ const CLIP='<svg viewBox="0 0 24 62"><path d="M9 40V14a4 4 0 0 1 8 0v38a7 7 0 0 1-14 0V10a9 9 0 0 1 18 0v34" fill="none" stroke="#4f4326" stroke-width="1.9" stroke-linecap="round"/><path d="M9 40V14a4 4 0 0 1 8 0v38a7 7 0 0 1-14 0V10a9 9 0 0 1 18 0v34" fill="none" stroke="#c7b583" stroke-opacity=".55" stroke-width=".6" stroke-linecap="round" transform="translate(-.35 -.3)"/></svg>';
  /* where each photo starts on the canvas (in order); keeps any spot that's already set */
  function spread(ids,arr={}){ids.forEach((id,i)=>{if(arr[id])return;const s=SLOTS[i%SLOTS.length];
   arr[id]={x:s[0]+wob(id,'x')*.04,y:s[1]+wob(id,'y')*.04,r:s[2]+wob(id,'r')*2,z:ids.length-i}});
   for(const id in arr)if(!ids.includes(id))delete arr[id];return arr}
 
- function make(stage,{interactive=false,onArrange=null,label=''}={}){
+ function make(stage,{interactive=false,onArrange=null,onPhoto=null,label=''}={}){
   stage.classList.add('cmp');if(interactive)stage.classList.add('live');
+  // just to look: a photo can be tapped (or focused and opened with Enter) to see them all up close
+  const viewable=!interactive&&!!onPhoto;if(viewable)stage.classList.add('viewable');
   const card=document.createElement('div');card.className='cmp-card';card.setAttribute('role','img');
   card.innerHTML='<div class="cmp-flip"><div class="cmp-face cmp-front"></div><div class="cmp-face cmp-back"></div></div>';
   const clip=document.createElement('div');clip.className='cmp-clip';clip.setAttribute('aria-hidden','true');clip.innerHTML=CLIP;
@@ -77,12 +79,12 @@ const Compose=(()=>{
   function sync(){const ids=new Set(prints.map(p=>p.id));
    for(const[id,e]of els)if(!ids.has(id)){e.remove();els.delete(id)}
    prints.forEach((p,i)=>{let e=els.get(p.id);
-    if(!e){e=document.createElement('div');e.className='cmp-print';stage.insertBefore(e,clip);els.set(p.id,e);if(interactive)drag(e,p.id)}
+    if(!e){e=document.createElement('div');e.className='cmp-print';stage.insertBefore(e,clip);els.set(p.id,e);if(interactive)drag(e,p.id);if(viewable)view(e,p.id)}
     if(e._src!==p.src){e.textContent='';const el=p.src.tagName==='CANVAS'?copy(p.src):p.src.cloneNode();el.alt='';el.draggable=false;e.append(el);e._src=p.src}
-    e._ar=p.w/p.h;e.setAttribute('role','img');e.setAttribute('aria-label',`photo ${i+1} of ${prints.length}${p.label?': '+p.label:''}`)});
+    e._ar=p.w/p.h;e.setAttribute('role',viewable?'button':'img');e.setAttribute('aria-label',`photo ${i+1} of ${prints.length}${p.label?': '+p.label:''}`)});
    paintFocus()}
   // in canvas mode each photo can be focused and moved with the arrow keys
-  function paintFocus(){for(const[,e]of els){const on=interactive&&mode==='canvas';e.tabIndex=on?0:-1;on?e.setAttribute('aria-roledescription','movable photo'):e.removeAttribute('aria-roledescription')}}
+  function paintFocus(){for(const[,e]of els){const on=interactive&&mode==='canvas';e.tabIndex=on||viewable?0:-1;on?e.setAttribute('aria-roledescription','movable photo'):e.removeAttribute('aria-roledescription')}}
 
   // animate 'flip' turns with the card (same length and curve as .cmp-flip); any other truthy value glides
   function place(e,t,animate){if(animate&&e._t&&e._t!==t&&!calm())e.animate([{transform:e._t},{transform:t}],animate==='flip'?{duration:750,easing:'cubic-bezier(.3,1.15,.4,1)'}:{duration:480,easing:'cubic-bezier(.2,.85,.25,1.05)'});e.style.transform=t;e._t=t}
@@ -112,6 +114,10 @@ const Compose=(()=>{
    if(!clip.hidden){const L=cw*.34;Object.assign(clip.style,{width:L*24/62+'px',height:L+'px',zIndex:back?2:40});
     place(clip,turn(cx-L*12/62)+`translate(${cx+.3*cw-L*12/62}px,${cy-ch/2-L*.42}px) rotate(4deg)`,animate)}}
   new ResizeObserver(()=>layout(false)).observe(stage);
+
+  function view(e,id){const go=()=>onPhoto(prints.findIndex(p=>p.id===id));
+   e.addEventListener('click',ev=>{ev.stopPropagation();go()});
+   e.addEventListener('keydown',ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();go()}})}
 
   /* canvas mode: drag a photo around; it comes to the front and stays inside the canvas */
   function drag(e,id){let st=null;
